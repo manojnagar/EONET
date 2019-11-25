@@ -1,4 +1,4 @@
-package com.observe.eonet.ui.dashboard
+package com.observe.eonet.ui.events
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,20 +10,20 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.observe.eonet.R
 
-class DashboardFragment : Fragment() {
+class EventsFragment : Fragment() {
 
-    private lateinit var dashboardViewModel: DashboardViewModel
+    private lateinit var eventsViewModel: EventsViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        dashboardViewModel =
-            ViewModelProviders.of(this).get(DashboardViewModel::class.java)
-        val root = inflater.inflate(R.layout.fragment_dashboard, container, false)
-        val textView: TextView = root.findViewById(R.id.text_dashboard)
-        dashboardViewModel.text.observe(this, Observer {
+        eventsViewModel =
+            ViewModelProviders.of(this).get(EventsViewModel::class.java)
+        val root = inflater.inflate(R.layout.fragment_events, container, false)
+        val textView: TextView = root.findViewById(R.id.text_events)
+        eventsViewModel.text.observe(this, Observer {
             textView.text = it
         })
         return root
