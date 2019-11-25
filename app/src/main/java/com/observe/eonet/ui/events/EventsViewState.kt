@@ -3,7 +3,7 @@ package com.observe.eonet.ui.events
 import com.observe.eonet.data.model.Event
 import com.observe.eonet.mvibase.MviViewState
 
-class EventsViewState(
+data class EventsViewState(
     val isLoading: Boolean,
     val events: List<Event>,
     val error: Throwable?
