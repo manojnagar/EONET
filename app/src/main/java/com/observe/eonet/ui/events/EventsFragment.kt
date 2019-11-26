@@ -6,11 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.observe.eonet.R
 import com.observe.eonet.mvibase.MviView
+import com.observe.eonet.util.RecyclerViewItemDecoration
 import com.observe.eonet.util.visible
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
@@ -40,6 +42,17 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState> {
         //Setup views
         eventsRecyclerView.layoutManager = LinearLayoutManager(context)
         eventsRecyclerView.adapter = adapter
+
+        context?.let {
+            eventsRecyclerView
+                .addItemDecoration(
+                    RecyclerViewItemDecoration(
+                        it.resources.getDimensionPixelSize(R.dimen.events_card_item_layout_margin),
+                        ContextCompat.getColor(it, R.color.event_divider_color),
+                        it.resources.getDimensionPixelSize(R.dimen.events_card_item_divider_height)
+                    )
+                )
+        }
     }
 
     override fun onStart() {
@@ -73,7 +86,7 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState> {
         progressBar.visible = state.isLoading
 
         if (state.events.isEmpty()) {
-            emptyState.visible = true
+            emptyState.visible = !state.isLoading
             eventsRecyclerView.visible = false
         } else {
             emptyState.visible = false

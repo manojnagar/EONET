@@ -3,4 +3,9 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="dp_16">16dp</dimen>
+    <dimen name="events_card_item_layout_margin">16dp</dimen>
+    <dimen name="events_card_item_divider_height">2dp</dimen>
+    <dimen name="sp_12">12sp</dimen>
+    <dimen name="sp_16">16sp</dimen>
+    <dimen name="dp_8">8dp</dimen>
 </resources>

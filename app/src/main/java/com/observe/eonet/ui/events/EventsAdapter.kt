@@ -33,6 +33,9 @@ class EventsAdapter(private val events: MutableList<EOEvent>) :
             this.event = event
 
             //Update view
+            var category = event.categories.joinToString(" #") { it.title }
+            category = "#$category"
+            itemView.category.text = category
             itemView.title.text = event.title
         }
     }
