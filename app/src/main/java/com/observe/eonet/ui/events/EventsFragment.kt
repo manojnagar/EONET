@@ -41,12 +41,6 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState> {
         bind()
     }
 
-    override fun onResume() {
-        super.onResume()
-        Log.e("manoj", "Resume called")
-        testIntentPublisher.onNext(EventsIntent.TestIntent)
-    }
-
     private fun bind() {
         disposables.add(eventsViewModel.states().subscribe(this::render))
         eventsViewModel.processIntents(intents())
@@ -69,12 +63,16 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState> {
     }
 
     override fun render(state: EventsViewState) {
-        Log.e("manoj", "Render called : $state")
+        Log.d(TAG, "Rendering viewState on UI -> $state")
         //TODO: Implement logic here
     }
 
     override fun onStop() {
         super.onStop()
         disposables.clear()
+    }
+
+    companion object {
+        private const val TAG = "EventsFragment"
     }
 }

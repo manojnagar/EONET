@@ -13,9 +13,9 @@ import io.reactivex.subjects.PublishSubject
 
 class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState> {
 
+
     private val intentsSubject: PublishSubject<EventsIntent> = PublishSubject.create()
     private val statesObservable: Observable<EventsViewState> = compose()
-
 
     private val _text = MutableLiveData<String>().apply {
         value = "This is events Fragment"
@@ -27,18 +27,29 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
     }
 
     private fun compose(): Observable<EventsViewState> {
-        val data =
-            intentsSubject
-                .compose(intentFilter)
-                .map(this::actionFromIntent)
-                .compose(EventsProcessorHolder().actionProcessor)
-                .scan(EventsViewState.idle(), reducer)
-                .distinctUntilChanged()
-                .replay(1)
-                .autoConnect(0)
-
-        //TODO: Implement logic here
-        return Observable.empty()
+        return intentsSubject
+            .doOnNext {
+                Log.d(TAG, "New intent : $it")
+            }
+            .compose(intentFilter)
+            .map(this::actionFromIntent)
+            .doOnNext {
+                Log.d(TAG, "Converted action : $it")
+            }
+            .compose(EventsProcessorHolder().actionProcessor)
+            .doOnNext {
+                Log.d(TAG, "Converted result : $it")
+            }
+            .scan(EventsViewState.idle(), reducer)
+            .doOnNext {
+                Log.d(TAG, "Converted viewState : $it")
+            }
+            .distinctUntilChanged()
+            .replay(1)
+            .autoConnect(0)
+            .doOnNext {
+                Log.d(TAG, "Notify view state to UI : $it")
+            }
     }
 
     private val intentFilter: ObservableTransformer<EventsIntent, EventsIntent>
@@ -52,7 +63,6 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
         }
 
     private fun actionFromIntent(intent: EventsIntent): EventsAction {
-        Log.e("manoj", "actionFromIntent called  : $intent")
         return when (intent) {
             is EventsIntent.LoadEventsIntent -> EventsAction.LoadEventsAction
             is EventsIntent.TestIntent -> EventsAction.LoadEventsAction
@@ -61,6 +71,8 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
     }
 
     companion object {
+        private const val TAG = "EventsVM"
+
         private val reducer =
             BiFunction { previousState: EventsViewState, result: EventsResult ->
                 when (result) {
