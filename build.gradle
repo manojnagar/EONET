@@ -12,6 +12,7 @@ buildscript {
         lifecycle_version = '2.1.0'
         mockitoVersion = '2.7.22'
         mockitoKotlinVersion = '1.5.0'
+        retrofit = '2.6.2'
     }
 
     repositories {
