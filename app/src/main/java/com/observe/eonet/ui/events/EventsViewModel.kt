@@ -1,10 +1,9 @@
 package com.observe.eonet.ui.events
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.observe.eonet.mvibase.MviViewModel
+import com.observe.eonet.ui.events.EventsResult.LoadEventsResult
 import com.observe.eonet.util.notOfType
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
@@ -17,10 +16,6 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
     private val intentsSubject: PublishSubject<EventsIntent> = PublishSubject.create()
     private val statesObservable: Observable<EventsViewState> = compose()
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is events Fragment"
-    }
-    val text: LiveData<String> = _text
 
     override fun processIntents(intents: Observable<EventsIntent>) {
         intents.subscribe(intentsSubject)
@@ -76,15 +71,15 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
         private val reducer =
             BiFunction { previousState: EventsViewState, result: EventsResult ->
                 when (result) {
-                    is EventsResult.LoadEventsResult -> when (result) {
-                        is EventsResult.LoadEventsResult.Loading -> {
+                    is LoadEventsResult -> when (result) {
+                        is LoadEventsResult.Loading -> {
                             previousState.copy(isLoading = true)
                         }
-                        is EventsResult.LoadEventsResult.Success -> {
-                            previousState.copy(isLoading = false)
+                        is LoadEventsResult.Success -> {
+                            previousState.copy(isLoading = false, events = result.events)
                         }
-                        is EventsResult.LoadEventsResult.Failure -> {
-                            previousState
+                        is LoadEventsResult.Failure -> {
+                            previousState.copy(isLoading = false, error = result.error)
                         }
                     }
                     //TODO: Implement other results
