@@ -4,7 +4,7 @@ import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.data.repository.remote.RemoteDataSource
 import io.reactivex.Observable
 
-class Repository : DataSource {
+class DataRepository : DataSource {
 
     private val remoteDataSource: RemoteDataSource by lazy {
         RemoteDataSource()
