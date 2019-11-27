@@ -30,15 +30,15 @@ class EventsProcessorHolder {
                 )
                     .cast(EventsResult::class.java)
                     .mergeWith(
-                    // Error for not implemented actions
-                    shared.filter { v ->
-                        v !is LoadEventsAction
-                    }.flatMap { w ->
-                        Observable.error<EventsResult>(
-                            IllegalArgumentException("Unknown Action type: $w")
-                        )
-                    }
-                )
+                        // Error for not implemented actions
+                        shared.filter { v ->
+                            v !is LoadEventsAction
+                        }.flatMap { w ->
+                            Observable.error<EventsResult>(
+                                IllegalArgumentException("Unknown Action type: $w")
+                            )
+                        }
+                    )
             }
         }
 }
