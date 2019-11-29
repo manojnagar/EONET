@@ -26,7 +26,7 @@ class EventDetailFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        bindViewModel()
+//        bindViewModel()
     }
 
     private fun bindViewModel() {

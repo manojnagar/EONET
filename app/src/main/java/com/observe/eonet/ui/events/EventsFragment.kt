@@ -9,9 +9,12 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.observe.eonet.R
+import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.mvibase.MviView
+import com.observe.eonet.ui.events.EventsIntent.*
 import com.observe.eonet.util.RecyclerViewItemDecoration
 import com.observe.eonet.util.visible
 import io.reactivex.Observable
@@ -19,12 +22,16 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.fragment_events.*
 
-class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState> {
+class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
+    EventsAdapter.AdapterCallback {
 
     private val disposables = CompositeDisposable()
-    private val adapter = EventsAdapter(mutableListOf())
     private lateinit var eventsViewModel: EventsViewModel
-    private var testIntentPublisher = PublishSubject.create<EventsIntent.TestIntent>()
+    private lateinit var adapter: EventsAdapter
+    private var selectEventIntentPublisher =
+        PublishSubject.create<SelectEventIntent>()
+    private var detailPageOpenedIntentPublisher =
+        PublishSubject.create<DetailPageOpenedIntent>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,6 +40,7 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState> {
     ): View? {
         eventsViewModel =
             ViewModelProviders.of(this).get(EventsViewModel::class.java)
+        adapter = EventsAdapter(mutableListOf(), this)
         return inflater.inflate(R.layout.fragment_events, container, false)
     }
 
@@ -65,24 +73,35 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState> {
         eventsViewModel.processIntents(intents())
     }
 
-    private fun loadIntent(): Observable<EventsIntent.LoadEventsIntent> {
-        return Observable.just(EventsIntent.LoadEventsIntent)
+    private fun loadIntent(): Observable<LoadEventsIntent> {
+        return Observable.just(LoadEventsIntent)
     }
 
     //TODO: Create same logic for each user intent
-    private fun testIntent(): Observable<EventsIntent.TestIntent> {
-        return testIntentPublisher
+    private fun selectEventIntent(): Observable<SelectEventIntent> {
+        return selectEventIntentPublisher
+    }
+
+    private fun detailPageOpenedIntent(): Observable<DetailPageOpenedIntent> {
+        return detailPageOpenedIntentPublisher
     }
 
     override fun intents(): Observable<EventsIntent> {
         return Observable.merge(
             loadIntent(),
-            testIntent()
+            selectEventIntent(),
+            detailPageOpenedIntent()
         )
     }
 
     override fun render(state: EventsViewState) {
         Log.d(TAG, "Rendering viewState on UI -> $state")
+        if (state.isEventSelected) {
+            findNavController().navigate(R.id.action_navigation_events_to_eventDetailFragment)
+            detailPageOpenedIntentPublisher.onNext(DetailPageOpenedIntent)
+            return
+        }
+
         progressBar.visible = state.isLoading
 
         if (state.events.isEmpty()) {
@@ -108,5 +127,11 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState> {
 
     companion object {
         private const val TAG = "EventsFragment"
+    }
+
+    override fun onEventSelected(event: EOEvent) {
+        Log.e("manoj", "onEvent Selected : $event")
+//        selectEventIntentPublisher.onNext(SelectEventIntent(event))
+        detailPageOpenedIntentPublisher.onNext(DetailPageOpenedIntent)
     }
 }

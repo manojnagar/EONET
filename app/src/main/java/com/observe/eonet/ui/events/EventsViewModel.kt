@@ -3,6 +3,8 @@ package com.observe.eonet.ui.events
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.observe.eonet.mvibase.MviViewModel
+import com.observe.eonet.ui.events.EventsAction.*
+import com.observe.eonet.ui.events.EventsIntent.*
 import com.observe.eonet.ui.events.EventsResult.LoadEventsResult
 import com.observe.eonet.util.notOfType
 import io.reactivex.Observable
@@ -12,10 +14,8 @@ import io.reactivex.subjects.PublishSubject
 
 class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState> {
 
-
     private val intentsSubject: PublishSubject<EventsIntent> = PublishSubject.create()
     private val statesObservable: Observable<EventsViewState> = compose()
-
 
     override fun processIntents(intents: Observable<EventsIntent>) {
         intents.subscribe(intentsSubject)
@@ -29,6 +29,7 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
             .compose(intentFilter)
             .map(this::actionFromIntent)
             .doOnNext {
+
                 Log.d(TAG, "Converted action : $it")
             }
             .compose(EventsProcessorHolder().actionProcessor)
@@ -51,16 +52,18 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
         get() = ObservableTransformer { intents ->
             intents.publish { shared ->
                 Observable.merge(
-                    shared.ofType(EventsIntent.LoadEventsIntent::class.java).take(1),
-                    shared.notOfType(EventsIntent.LoadEventsIntent::class.java)
+                    shared.ofType(LoadEventsIntent::class.java).take(1),
+                    shared.notOfType(LoadEventsIntent::class.java)
                 )
             }
         }
 
     private fun actionFromIntent(intent: EventsIntent): EventsAction {
         return when (intent) {
-            is EventsIntent.LoadEventsIntent -> EventsAction.LoadEventsAction
-            is EventsIntent.TestIntent -> EventsAction.LoadEventsAction
+            is LoadEventsIntent -> LoadEventsAction
+            is SelectEventIntent -> SelectEventAction(intent.event)
+            is DetailPageOpenedIntent -> DetailPageOpenedAction
+
             //TODO: Convert each new intent into action here
         }
     }
@@ -82,6 +85,17 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
                             previousState.copy(isLoading = false, error = result.error)
                         }
                     }
+
+                    is EventsResult.SelectEventResult -> previousState.copy(
+                        isEventSelected = true,
+                        selectedEvent = result.event
+                    )
+
+                    is EventsResult.DetailPageOpenedResult ->
+                        previousState.copy(
+                            isEventSelected = false,
+                            selectedEvent = null
+                        )
                     //TODO: Implement other results
                 }
             }

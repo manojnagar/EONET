@@ -8,7 +8,10 @@ import com.observe.eonet.app.inflate
 import com.observe.eonet.data.model.EOEvent
 import kotlinx.android.synthetic.main.list_item_event.view.*
 
-class EventsAdapter(private val events: MutableList<EOEvent>) :
+class EventsAdapter(
+    private val events: MutableList<EOEvent>,
+    private val callback: AdapterCallback
+) :
     RecyclerView.Adapter<EventsAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -16,7 +19,7 @@ class EventsAdapter(private val events: MutableList<EOEvent>) :
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(events[position])
+        holder.bind(events[position], callback)
     }
 
     override fun getItemCount(): Int = events.size
@@ -29,7 +32,7 @@ class EventsAdapter(private val events: MutableList<EOEvent>) :
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private lateinit var event: EOEvent
 
-        fun bind(event: EOEvent) {
+        fun bind(event: EOEvent, callback: AdapterCallback) {
             this.event = event
 
             //Update view
@@ -37,6 +40,14 @@ class EventsAdapter(private val events: MutableList<EOEvent>) :
             category = "#$category"
             itemView.category.text = category
             itemView.title.text = event.title
+
+            itemView.setOnClickListener {
+                callback.onEventSelected(event)
+            }
         }
+    }
+
+    interface AdapterCallback {
+        fun onEventSelected(event: EOEvent)
     }
 }

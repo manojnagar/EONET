@@ -11,6 +11,10 @@ sealed class EventsResult : MviResult {
         data class Failure(val error: Throwable) : LoadEventsResult()
     }
 
+    data class SelectEventResult(val event: EOEvent) : EventsResult()
+
+    object DetailPageOpenedResult : EventsResult()
+
     //TODO: Result corresponding to every actions
     // Result -> When action performed on the data, it's output of action
 }

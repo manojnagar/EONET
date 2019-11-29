@@ -5,6 +5,8 @@ import com.observe.eonet.mvibase.MviViewState
 
 data class EventsViewState(
     val isLoading: Boolean,
+    val isEventSelected: Boolean,
+    val selectedEvent: EOEvent?,
     val events: List<EOEvent>,
     val error: Throwable?
 ) : MviViewState {
@@ -12,6 +14,8 @@ data class EventsViewState(
     companion object {
         fun idle(): EventsViewState = EventsViewState(
             isLoading = false,
+            isEventSelected = false,
+            selectedEvent = null,
             events = emptyList(),
             error = null
         )
