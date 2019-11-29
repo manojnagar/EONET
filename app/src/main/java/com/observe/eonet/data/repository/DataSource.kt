@@ -9,4 +9,6 @@ import io.reactivex.Observable
 interface DataSource {
 
     fun fetchEvents(): Observable<List<EOEvent>>
+
+    fun fetchEvent(eventId: String): Observable<EOEvent>
 }

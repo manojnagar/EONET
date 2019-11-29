@@ -132,6 +132,8 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
     override fun onEventSelected(event: EOEvent) {
         Log.e("manoj", "onEvent Selected : $event")
 //        selectEventIntentPublisher.onNext(SelectEventIntent(event))
-        findNavController().navigate(R.id.action_navigation_events_to_eventDetailFragment)
+        val direction =
+            EventsFragmentDirections.actionNavigationEventsToEventDetailFragment(event.id)
+        findNavController().navigate(direction)
     }
 }

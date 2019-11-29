@@ -11,4 +11,8 @@ class DataRepository : DataSource {
     }
 
     override fun fetchEvents(): Observable<List<EOEvent>> = remoteDataSource.fetchEvents()
+
+    override fun fetchEvent(eventId: String): Observable<EOEvent> {
+        return remoteDataSource.fetchEvent(eventId)
+    }
 }

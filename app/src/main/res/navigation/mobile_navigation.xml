@@ -29,6 +29,10 @@
     <fragment
         android:id="@+id/eventDetailFragment"
         android:name="com.observe.eonet.ui.eventdetail.EventDetailFragment"
-        android:label="event_detail_fragment"
-        tools:layout="@layout/event_detail_fragment" />
+        android:label="@string/title_event_detail"
+        tools:layout="@layout/event_detail_fragment">
+        <argument
+            android:name="eventId"
+            app:argType="string" />
+    </fragment>
 </navigation>

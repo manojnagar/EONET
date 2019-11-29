@@ -18,6 +18,10 @@ class RemoteDataSource : DataSource {
         return Observable.merge(openEvents, closedEvents)
     }
 
+    override fun fetchEvent(eventId: String): Observable<EOEvent> {
+        return eonetApi.fetchEvent(eventId)
+    }
+
     private fun fetchEvents(forLastDays: Int, closed: Boolean): Observable<List<EOEvent>> {
         val status = if (closed) "closed" else "open"
         return eonetApi
