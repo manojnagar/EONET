@@ -22,6 +22,11 @@ interface EONETApi {
         @Query("status") status: String
     ): Observable<EOEventResponse>
 
+    @GET("{endpoint}")
+    fun fetchEvents(
+        @Path("endpoint", encoded = true) endpoint: String
+    ): Observable<EOEventResponse>
+
     @GET("$EVENTS_ENDPOINT/{eventId}")
     fun fetchEvent(@Path("eventId") eventId: String): Observable<EOEvent>
 

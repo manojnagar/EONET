@@ -11,6 +11,8 @@ interface DataSource {
 
     fun fetchCategory(): Observable<List<EOCategory>>
 
+    fun fetchEvents(category: EOCategory): Observable<List<EOEvent>>
+
     fun fetchEvents(): Observable<List<EOEvent>>
 
     fun fetchEvent(eventId: String): Observable<EOEvent>

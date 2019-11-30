@@ -37,7 +37,8 @@ class CategoryAdapter(
             this.category = category
 
             //Update view
-            itemView.title.text = category.title
+            val count = category.events?.size ?: 0
+            itemView.title.text = "${category.title} ($count)"
 
             itemView.setOnClickListener {
                 callback.onCategorySelected(category)

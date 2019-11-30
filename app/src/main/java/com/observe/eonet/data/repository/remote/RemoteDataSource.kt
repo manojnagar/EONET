@@ -16,6 +16,11 @@ class RemoteDataSource : DataSource {
             .map { response -> response.categories }
     }
 
+    override fun fetchEvents(category: EOCategory): Observable<List<EOEvent>> {
+        return eonetApi.fetchEvents(category.link)
+            .map { response -> response.events }
+    }
+
     override fun fetchEvents(): Observable<List<EOEvent>> {
         val openEvents = fetchEvents(forLastDays = 30, closed = false)
         val closedEvents = fetchEvents(forLastDays = 30, closed = true)

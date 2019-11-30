@@ -1,17 +1,68 @@
 package com.observe.eonet.ui.category
 
 import com.observe.eonet.app.EONETApplication
+import com.observe.eonet.data.model.EOCategory
+import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.ui.category.CategoriesAction.LoadCategoriesAction
 import com.observe.eonet.ui.category.CategoriesResult.LoadCategoriesResult
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
+import io.reactivex.rxkotlin.toObservable
 
 class CategoriesProcessorHolder {
 
+    private fun filterEventsForCategory(
+        events: List<EOEvent>,
+        category: EOCategory
+    ): List<EOEvent> {
+        return events.filter { event ->
+            /*Category id should contain in events category events list and
+            Event id should not contain in category events ids*/
+            val isCategoryInEvent = event.categories.map { it.id }.contains(category.id)
+            val isEventInCategory =
+                category.events?.map { catEvent -> catEvent.id }?.contains(event.id)
+
+            var result = isCategoryInEvent
+
+            isEventInCategory?.let {
+                result = result && (!it)
+            }
+            result
+        }
+    }
+
+    private val downloadCategories =
+        EONETApplication.dataSource.fetchCategory()
+
+    private val downloadEvents = Observable.merge(
+        downloadCategories.flatMap { categories ->
+            categories.toObservable().map { category ->
+                EONETApplication.dataSource.fetchEvents(category)
+            }
+        }, 5
+    )
+
+    private val updateCategories =
+        downloadCategories.flatMap { categories ->
+            downloadEvents.scan(categories) { updated, events ->
+                updated.map { category ->
+                    val eventsForCategory = filterEventsForCategory(events, category)
+                    if (eventsForCategory.isNotEmpty()) {
+                        val eventsList = mutableListOf<EOEvent>()
+                        category.events?.let { eventsList.addAll(it) }
+                        eventsList.addAll(eventsForCategory)
+                        category.copy(events = eventsList)
+                    } else {
+                        category
+                    }
+                }
+            }
+        }
+
     private val loadCategoryProcessorHolder =
         ObservableTransformer<LoadCategoriesAction, LoadCategoriesResult> { actions ->
-            actions.flatMap { action ->
-                EONETApplication.dataSource.fetchCategory()
+            actions.flatMap {
+                downloadCategories.concatWith(updateCategories)
                     .map { categories -> LoadCategoriesResult.Success(categories) }
                     .cast(LoadCategoriesResult::class.java)
                     .onErrorReturn(LoadCategoriesResult::Failure)

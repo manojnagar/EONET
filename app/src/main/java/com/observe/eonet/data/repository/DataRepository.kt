@@ -13,6 +13,9 @@ class DataRepository : DataSource {
 
     override fun fetchCategory(): Observable<List<EOCategory>> = remoteDataSource.fetchCategory()
 
+    override fun fetchEvents(category: EOCategory): Observable<List<EOEvent>> =
+        remoteDataSource.fetchEvents(category)
+
     override fun fetchEvents(): Observable<List<EOEvent>> = remoteDataSource.fetchEvents()
 
     override fun fetchEvent(eventId: String): Observable<EOEvent> =

@@ -59,9 +59,7 @@ class CategoryViewModel : ViewModel(), MviViewModel<CategoriesIntent, Categories
                         )
 
                         is LoadCategoriesResult.Success -> {
-                            val newList = previousState.categories.toMutableList()
-                            newList.addAll(result.categories)
-                            previousState.copy(isLoading = false, categories = newList)
+                            previousState.copy(isLoading = false, categories = result.categories)
                         }
 
                         is LoadCategoriesResult.Failure ->
