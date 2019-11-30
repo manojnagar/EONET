@@ -14,6 +14,18 @@ import io.reactivex.subjects.PublishSubject
 class CategoryViewModel : ViewModel(), MviViewModel<CategoriesIntent, CategoriesViewState> {
 
     private val intentsSubject: PublishSubject<CategoriesIntent> = PublishSubject.create()
+    private val statesObservable: Observable<CategoriesViewState> = compose()
+
+    private fun compose(): Observable<CategoriesViewState> {
+        return intentsSubject
+            .compose(intentsFilter)
+            .map(this::actionFromIntent)
+            .compose(CategoriesProcessorHolder().actionProcessor)
+            .scan(CategoriesViewState.idle(), reducer)
+            .distinctUntilChanged()
+            .replay(1)
+            .autoConnect(0)
+    }
 
     override fun processIntents(intents: Observable<CategoriesIntent>) {
         intents.subscribe(intentsSubject)
@@ -35,16 +47,7 @@ class CategoryViewModel : ViewModel(), MviViewModel<CategoriesIntent, Categories
         }
     }
 
-    override fun states(): Observable<CategoriesViewState> {
-        return intentsSubject
-            .compose(intentsFilter)
-            .map(this::actionFromIntent)
-            .compose(CategoriesProcessorHolder().actionProcessor)
-            .scan(CategoriesViewState.idle(), reducer)
-            .distinctUntilChanged()
-            .replay(1)
-            .autoConnect(0)
-    }
+    override fun states(): Observable<CategoriesViewState> = statesObservable
 
     companion object {
         private val reducer =
