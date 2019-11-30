@@ -1,13 +1,19 @@
 package com.observe.eonet.ui.category
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.observe.eonet.mvibase.MviViewModel
+import io.reactivex.Observable
+import io.reactivex.subjects.PublishSubject
 
-class CategoryViewModel : ViewModel() {
+class CategoryViewModel : ViewModel(), MviViewModel<CategoriesIntent, CategoriesViewState> {
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is category Fragment"
+    private val intentsSubject: PublishSubject<CategoriesIntent> = PublishSubject.create()
+
+    override fun processIntents(intents: Observable<CategoriesIntent>) {
+        intents.subscribe(intentsSubject)
     }
-    val text: LiveData<String> = _text
+
+    override fun states(): Observable<CategoriesViewState> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 }
