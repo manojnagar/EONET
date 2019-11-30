@@ -79,7 +79,9 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
                             previousState.copy(isLoading = true)
                         }
                         is LoadEventsResult.Success -> {
-                            previousState.copy(isLoading = false, events = result.events)
+                            val newList = previousState.events.toMutableList()
+                            newList.addAll(result.events)
+                            previousState.copy(isLoading = false, events = newList)
                         }
                         is LoadEventsResult.Failure -> {
                             previousState.copy(isLoading = false, error = result.error)

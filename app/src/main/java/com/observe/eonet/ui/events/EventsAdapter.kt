@@ -25,6 +25,7 @@ class EventsAdapter(
     override fun getItemCount(): Int = events.size
 
     fun appendEvents(events: List<EOEvent>) {
+        this.events.clear()
         this.events.addAll(events)
         notifyDataSetChanged()
     }
