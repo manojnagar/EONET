@@ -16,8 +16,12 @@ class RemoteDataSource : DataSource {
             .map { response -> response.categories }
     }
 
+    override fun fetchCategory(categoryId: String): Observable<EOCategory> {
+        return eonetApi.fetchCategory(categoryId)
+    }
+
     override fun fetchEvents(category: EOCategory): Observable<List<EOEvent>> {
-        return eonetApi.fetchEvents(category.link)
+        return eonetApi.fetchCategory(categoryId = category.id)
             .map { response -> response.events }
     }
 

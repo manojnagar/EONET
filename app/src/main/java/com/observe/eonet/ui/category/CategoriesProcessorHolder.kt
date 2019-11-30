@@ -34,28 +34,33 @@ class CategoriesProcessorHolder {
     private val downloadCategories =
         EONETApplication.dataSource.fetchCategory()
 
-    private val downloadEvents = Observable.merge(
+    private val downloadCategory = Observable.merge(
         downloadCategories.flatMap { categories ->
             categories.toObservable().map { category ->
-                EONETApplication.dataSource.fetchEvents(category)
+                EONETApplication.dataSource.fetchCategory(category.id)
             }
         }, 5
     )
 
     private val updateCategories =
         downloadCategories.flatMap { categories ->
-            downloadEvents.scan(categories) { updated, events ->
-                updated.map { category ->
-                    val eventsForCategory = filterEventsForCategory(events, category)
-                    if (eventsForCategory.isNotEmpty()) {
-                        val eventsList = mutableListOf<EOEvent>()
-                        category.events?.let { eventsList.addAll(it) }
-                        eventsList.addAll(eventsForCategory)
-                        category.copy(events = eventsList)
-                    } else {
-                        category
+            downloadCategory.scan(categories) { existingCategories, updatedCategory ->
+                existingCategories
+                    .map { existingCategory ->
+                        var eventsForCategory = emptyList<EOEvent>()
+                        updatedCategory.events?.let {
+                            eventsForCategory = filterEventsForCategory(it, existingCategory)
+                        }
+
+                        if (eventsForCategory.isNotEmpty()) {
+                            val eventsList = mutableListOf<EOEvent>()
+                            existingCategory.events?.let { eventsList.addAll(it) }
+                            eventsList.addAll(eventsForCategory)
+                            existingCategory.copy(events = eventsList)
+                        } else {
+                            existingCategory
+                        }
                     }
-                }
             }
         }
 

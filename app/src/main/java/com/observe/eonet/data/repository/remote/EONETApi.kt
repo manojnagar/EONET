@@ -1,5 +1,6 @@
 package com.observe.eonet.data.repository.remote
 
+import com.observe.eonet.data.model.EOCategory
 import com.observe.eonet.data.model.EOCategoryResponse
 import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.data.model.EOEventResponse
@@ -16,15 +17,13 @@ interface EONETApi {
     @GET(CATEGORIES_ENDPOINT)
     fun fetchCategories(): Observable<EOCategoryResponse>
 
+    @GET("$CATEGORIES_ENDPOINT/{categoryId}")
+    fun fetchCategory(@Path("categoryId") categoryId: String): Observable<EOCategory>
+
     @GET(EVENTS_ENDPOINT)
     fun fetchEvents(
         @Query("days") forLastDays: Int,
         @Query("status") status: String
-    ): Observable<EOEventResponse>
-
-    @GET("{endpoint}")
-    fun fetchEvents(
-        @Path("endpoint", encoded = true) endpoint: String
     ): Observable<EOEventResponse>
 
     @GET("$EVENTS_ENDPOINT/{eventId}")
