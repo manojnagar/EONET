@@ -22,11 +22,6 @@
         tools:layout="@layout/fragment_category" />
 
     <fragment
-        android:id="@+id/navigation_notifications"
-        android:name="com.observe.eonet.ui.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
-    <fragment
         android:id="@+id/eventDetailFragment"
         android:name="com.observe.eonet.ui.eventdetail.EventDetailFragment"
         android:label="@string/title_event_detail"
