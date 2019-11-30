@@ -1,6 +1,7 @@
 package com.observe.eonet.ui.events
 
 import com.observe.eonet.app.EONETApplication
+import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.ui.events.EventsAction.*
 import com.observe.eonet.ui.events.EventsResult.*
 import io.reactivex.Observable
@@ -11,7 +12,15 @@ class EventsProcessorHolder {
     private val loadEventsProcessor =
         ObservableTransformer<LoadEventsAction, LoadEventsResult> { actions ->
             actions.flatMap { action ->
-                EONETApplication.dataSource.fetchEvents()
+                val observable = if (action.categoryId == null) {
+                    EONETApplication.dataSource.fetchEvents()
+                } else {
+                    EONETApplication.dataSource.fetchCategory(action.categoryId)
+                        .map { category ->
+                            category.events ?: emptyList<EOEvent>()
+                        }
+                }
+                observable
                     .map { events -> LoadEventsResult.Success(events) }
                     .cast(LoadEventsResult::class.java)
                     .onErrorReturn(LoadEventsResult::Failure)

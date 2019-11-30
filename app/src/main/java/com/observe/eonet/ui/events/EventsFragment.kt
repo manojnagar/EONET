@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.observe.eonet.R
 import com.observe.eonet.data.model.EOEvent
@@ -26,6 +27,7 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
     EventsAdapter.AdapterCallback {
 
     private val disposables = CompositeDisposable()
+    private val args: EventsFragmentArgs by navArgs()
     private lateinit var eventsViewModel: EventsViewModel
     private lateinit var adapter: EventsAdapter
     private var selectEventIntentPublisher =
@@ -74,7 +76,7 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
     }
 
     private fun loadIntent(): Observable<LoadEventsIntent> {
-        return Observable.just(LoadEventsIntent)
+        return Observable.just(LoadEventsIntent(args.categoryId))
     }
 
     //TODO: Create same logic for each user intent

@@ -60,7 +60,7 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
 
     private fun actionFromIntent(intent: EventsIntent): EventsAction {
         return when (intent) {
-            is LoadEventsIntent -> LoadEventsAction
+            is LoadEventsIntent -> LoadEventsAction(intent.categoryId)
             is SelectEventIntent -> SelectEventAction(intent.event)
             is DetailPageOpenedIntent -> DetailPageOpenedAction
 

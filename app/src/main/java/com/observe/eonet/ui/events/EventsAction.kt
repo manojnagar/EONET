@@ -5,7 +5,7 @@ import com.observe.eonet.mvibase.MviAction
 
 sealed class EventsAction : MviAction {
 
-    object LoadEventsAction : EventsAction()
+    data class LoadEventsAction(val categoryId: String?) : EventsAction()
 
     data class SelectEventAction(val event: EOEvent) : EventsAction()
 

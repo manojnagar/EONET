@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.observe.eonet.R
 import com.observe.eonet.data.model.EOCategory
@@ -71,7 +72,9 @@ class CategoryFragment : Fragment(), CategoryAdapter.AdapterCallback,
     }
 
     override fun onCategorySelected(category: EOCategory) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val direction =
+            CategoryFragmentDirections.actionNavigationCategoryToNavigationEvents(category.id)
+        findNavController().navigate(direction)
     }
 
     override fun intents(): Observable<CategoriesIntent> {

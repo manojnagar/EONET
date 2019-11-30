@@ -5,7 +5,7 @@ import com.observe.eonet.mvibase.MviIntent
 
 sealed class EventsIntent : MviIntent {
 
-    object LoadEventsIntent : EventsIntent()
+    data class LoadEventsIntent(val categoryId: String?) : EventsIntent()
 
     data class SelectEventIntent(val event: EOEvent) : EventsIntent()
 
