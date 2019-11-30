@@ -15,7 +15,7 @@ class CategoryAdapter(
     RecyclerView.Adapter<CategoryAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(parent.inflate(R.layout.list_item_event))
+        return ViewHolder(parent.inflate(R.layout.list_item_category))
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
