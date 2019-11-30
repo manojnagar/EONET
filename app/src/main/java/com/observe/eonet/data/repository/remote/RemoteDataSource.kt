@@ -1,5 +1,6 @@
 package com.observe.eonet.data.repository.remote
 
+import com.observe.eonet.data.model.EOCategory
 import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.data.repository.DataSource
 import io.reactivex.Observable
@@ -8,6 +9,11 @@ class RemoteDataSource : DataSource {
 
     private val eonetApi by lazy {
         EONETApi.create()
+    }
+
+    override fun fetchCategory(): Observable<List<EOCategory>> {
+        return eonetApi.fetchCategories()
+            .map { response -> response.categories }
     }
 
     override fun fetchEvents(): Observable<List<EOEvent>> {

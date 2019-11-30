@@ -1,5 +1,6 @@
 package com.observe.eonet.data.repository.remote
 
+import com.observe.eonet.data.model.EOCategoryResponse
 import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.data.model.EOEventResponse
 import io.reactivex.Observable
@@ -11,6 +12,9 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface EONETApi {
+
+    @GET(CATEGORIES_ENDPOINT)
+    fun fetchCategories(): Observable<EOCategoryResponse>
 
     @GET(EVENTS_ENDPOINT)
     fun fetchEvents(
@@ -25,6 +29,7 @@ interface EONETApi {
 
         const val API = "https://eonet.sci.gsfc.nasa.gov/api/v2.1/"
         const val EVENTS_ENDPOINT = "events"
+        const val CATEGORIES_ENDPOINT = "categories"
 
         fun create(): EONETApi {
             val retrofit = Retrofit.Builder()
