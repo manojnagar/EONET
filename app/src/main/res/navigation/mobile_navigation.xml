@@ -3,7 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_events">
+    app:startDestination="@id/navigation_category">
+
+    <fragment
+        android:id="@+id/navigation_category"
+        android:name="com.observe.eonet.ui.category.CategoryFragment"
+        android:label="@string/title_category"
+        tools:layout="@layout/fragment_category">
+        <action
+            android:id="@+id/action_navigation_category_to_navigation_events"
+            app:destination="@id/navigation_events" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_events"
@@ -18,16 +28,6 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/navigation_category"
-        android:name="com.observe.eonet.ui.category.CategoryFragment"
-        android:label="@string/title_category"
-        tools:layout="@layout/fragment_category">
-        <action
-            android:id="@+id/action_navigation_category_to_navigation_events"
-            app:destination="@id/navigation_events" />
     </fragment>
 
     <fragment
