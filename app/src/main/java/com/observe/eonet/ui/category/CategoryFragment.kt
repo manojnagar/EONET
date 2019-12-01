@@ -84,6 +84,8 @@ class CategoryFragment : Fragment(), CategoryAdapter.AdapterCallback,
     override fun render(state: CategoriesViewState) {
         progressBar.visible = state.isLoading
 
+        updatingResultProgressBar.visible = !state.isUpdateComplete
+
         if (state.categories.isEmpty()) {
             emptyState.visible = !state.isLoading
             categoryRecyclerView.visible = false

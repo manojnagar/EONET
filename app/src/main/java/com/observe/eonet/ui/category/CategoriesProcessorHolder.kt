@@ -8,6 +8,7 @@ import com.observe.eonet.ui.category.CategoriesResult.LoadCategoriesResult
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.rxkotlin.toObservable
+import io.reactivex.subjects.PublishSubject
 
 class CategoriesProcessorHolder {
 
@@ -64,16 +65,21 @@ class CategoriesProcessorHolder {
             }
         }
 
+    private val updateCompleteSubject: PublishSubject<LoadCategoriesResult> =
+        PublishSubject.create()
+
     private val loadCategoryProcessorHolder =
         ObservableTransformer<LoadCategoriesAction, LoadCategoriesResult> { actions ->
             actions.flatMap {
                 downloadCategories.concatWith(updateCategories)
-                    .map { categories -> LoadCategoriesResult.Success(categories) }
+                    .map { categories -> LoadCategoriesResult.Update(categories) }
                     .cast(LoadCategoriesResult::class.java)
                     .onErrorReturn(LoadCategoriesResult::Failure)
                     .subscribeOn(EONETApplication.schedulerProvider.io())
                     .observeOn(EONETApplication.schedulerProvider.ui())
                     .startWith(LoadCategoriesResult.Loading)
+            }.doOnComplete {
+                updateCompleteSubject.onNext(LoadCategoriesResult.Complete)
             }
         }
 
@@ -84,7 +90,7 @@ class CategoriesProcessorHolder {
                     shared.ofType(LoadCategoriesAction::class.java).compose(
                         loadCategoryProcessorHolder
                     ),
-                    Observable.empty()
+                    updateCompleteSubject
                 )
                     .cast(CategoriesResult::class.java)
                     .mergeWith(

@@ -55,15 +55,27 @@ class CategoryViewModel : ViewModel(), MviViewModel<CategoriesIntent, Categories
                 when (result) {
                     is LoadCategoriesResult -> when (result) {
                         is LoadCategoriesResult.Loading -> previousState.copy(
-                            isLoading = true
+                            isLoading = true,
+                            isUpdateComplete = true
                         )
 
-                        is LoadCategoriesResult.Success -> {
-                            previousState.copy(isLoading = false, categories = result.categories)
+                        is LoadCategoriesResult.Update -> {
+                            previousState.copy(
+                                isLoading = false,
+                                isUpdateComplete = false,
+                                categories = result.categories
+                            )
+                        }
+
+                        is LoadCategoriesResult.Complete -> {
+                            previousState.copy(isLoading = false, isUpdateComplete = true)
                         }
 
                         is LoadCategoriesResult.Failure ->
-                            previousState.copy(isLoading = false, error = result.error)
+                            previousState.copy(
+                                isLoading = false, isUpdateComplete = true,
+                                error = result.error
+                            )
                     }
                 }
             }

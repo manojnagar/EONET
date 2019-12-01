@@ -5,6 +5,7 @@ import com.observe.eonet.mvibase.MviViewState
 
 data class CategoriesViewState(
     val isLoading: Boolean,
+    val isUpdateComplete: Boolean,
     val categories: List<EOCategory>,
     val error: Throwable?
 ) : MviViewState {
@@ -12,6 +13,7 @@ data class CategoriesViewState(
         fun idle(): CategoriesViewState {
             return CategoriesViewState(
                 isLoading = false,
+                isUpdateComplete = false,
                 categories = emptyList(),
                 error = null
             )
