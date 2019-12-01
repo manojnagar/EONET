@@ -38,5 +38,17 @@
         <argument
             android:name="eventId"
             app:argType="string" />
+        <action
+            android:id="@+id/action_eventDetailFragment_to_webContentFragment"
+            app:destination="@id/webContentFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/webContentFragment"
+        android:name="com.observe.eonet.ui.source.WebContentFragment"
+        android:label="web_content_fragment"
+        tools:layout="@layout/web_content_fragment">
+        <argument
+            android:name="contentUrl"
+            app:argType="string" />
     </fragment>
 </navigation>

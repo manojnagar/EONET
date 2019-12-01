@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.observe.eonet.R
 import com.observe.eonet.mvibase.MviView
@@ -46,6 +47,12 @@ class EventDetailFragment : Fragment(), MviView<EventDetailIntent, EventDetailVi
     private fun bindViewModel() {
         disposable.add(viewModel.states().subscribe(this::render))
         viewModel.processIntents(intents())
+
+        sourceInfo.setOnClickListener {
+            val direction =
+                EventDetailFragmentDirections.actionEventDetailFragmentToWebContentFragment("https://inciweb.nwcg.gov/incident/6622/")
+            findNavController().navigate(direction)
+        }
     }
 
     override fun intents(): Observable<EventDetailIntent> {
