@@ -17,11 +17,19 @@ class RemoteDataSource : DataSource {
     }
 
     override fun fetchCategory(categoryId: String): Observable<EOCategory> {
-        return eonetApi.fetchCategory(categoryId)
+        val openCategory = fetchCategory(categoryId, false)
+        val closedCategory = fetchCategory(categoryId, true)
+        return Observable.merge(openCategory, closedCategory)
+    }
+
+    private fun fetchCategory(categoryId: String, closed: Boolean): Observable<EOCategory> {
+        val status = if (closed) "closed" else "open"
+        return eonetApi
+            .fetchCategory(categoryId, status)
     }
 
     override fun fetchEvents(category: EOCategory): Observable<List<EOEvent>> {
-        return eonetApi.fetchCategory(categoryId = category.id)
+        return fetchCategory(categoryId = category.id)
             .map { response -> response.events }
     }
 
