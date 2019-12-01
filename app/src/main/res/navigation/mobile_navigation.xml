@@ -45,7 +45,7 @@
     <fragment
         android:id="@+id/webContentFragment"
         android:name="com.observe.eonet.ui.source.WebContentFragment"
-        android:label="web_content_fragment"
+        android:label="@string/title_event_source"
         tools:layout="@layout/web_content_fragment">
         <argument
             android:name="contentUrl"

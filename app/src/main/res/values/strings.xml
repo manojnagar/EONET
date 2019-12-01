@@ -7,4 +7,5 @@
     <string name="error_loading_events">Error loading events.</string>
     <string name="title_event_detail">Event Info</string>
     <string name="no_category_found">No category found</string>
+    <string name="title_event_source">Event Source</string>
 </resources>
