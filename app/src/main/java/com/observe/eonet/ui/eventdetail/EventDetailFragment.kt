@@ -6,11 +6,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.observe.eonet.R
+import com.observe.eonet.data.model.EOSource
 import com.observe.eonet.mvibase.MviView
+import com.observe.eonet.util.RecyclerViewItemDecoration
 import com.observe.eonet.util.visible
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
@@ -18,7 +23,9 @@ import kotlinx.android.synthetic.main.event_detail_fragment.*
 import kotlinx.android.synthetic.main.fragment_events.emptyState
 import kotlinx.android.synthetic.main.fragment_events.progressBar
 
-class EventDetailFragment : Fragment(), MviView<EventDetailIntent, EventDetailViewState> {
+class EventDetailFragment : Fragment(),
+    MviView<EventDetailIntent, EventDetailViewState>,
+    SourceAdapter.AdapterCallback {
 
     private val disposable = CompositeDisposable()
     private val args: EventDetailFragmentArgs by navArgs()
@@ -46,12 +53,6 @@ class EventDetailFragment : Fragment(), MviView<EventDetailIntent, EventDetailVi
     private fun bindViewModel() {
         disposable.add(viewModel.states().subscribe(this::render))
         viewModel.processIntents(intents())
-
-//        sourceInfo.setOnClickListener {
-//            val direction =
-//                EventDetailFragmentDirections.actionEventDetailFragmentToWebContentFragment("https://inciweb.nwcg.gov/incident/6622/")
-//            findNavController().navigate(direction)
-//        }
     }
 
     override fun intents(): Observable<EventDetailIntent> {
@@ -65,6 +66,7 @@ class EventDetailFragment : Fragment(), MviView<EventDetailIntent, EventDetailVi
             emptyState.visible = !state.isLoading
             title.visible = false
             category.visible = false
+            sourceTitle.visible = false
         } else {
             emptyState.visible = false
             title.visible = true
@@ -74,6 +76,21 @@ class EventDetailFragment : Fragment(), MviView<EventDetailIntent, EventDetailVi
             var categoryData = state.event.categories.joinToString(" #") { it.title }
             categoryData = "#$categoryData"
             category.text = categoryData
+
+            //Setup source recycler view
+            sourceTitle.visible = true
+            sourceRecyclerView.layoutManager = LinearLayoutManager(context)
+            sourceRecyclerView.adapter = SourceAdapter(state.event.sources, this)
+            context?.let {
+                sourceRecyclerView
+                    .addItemDecoration(
+                        RecyclerViewItemDecoration(
+                            it.resources.getDimensionPixelSize(R.dimen.events_card_item_layout_margin),
+                            ContextCompat.getColor(it, R.color.event_divider_color),
+                            it.resources.getDimensionPixelSize(R.dimen.events_card_item_divider_height)
+                        )
+                    )
+            }
         }
 
         if (state.error != null) {
@@ -87,4 +104,9 @@ class EventDetailFragment : Fragment(), MviView<EventDetailIntent, EventDetailVi
         private const val TAG = "EventDetailFragment"
     }
 
+    override fun onSourceSelected(source: EOSource) {
+        val direction =
+            EventDetailFragmentDirections.actionEventDetailFragmentToWebContentFragment(source.url)
+        findNavController().navigate(direction)
+    }
 }
