@@ -12,6 +12,9 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.maps.android.data.geojson.GeoJsonLayer
 import com.observe.eonet.R
 import com.observe.eonet.data.model.EOSource
 import com.observe.eonet.mvibase.MviView
@@ -22,10 +25,12 @@ import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.event_detail_fragment.*
 import kotlinx.android.synthetic.main.fragment_events.emptyState
 import kotlinx.android.synthetic.main.fragment_events.progressBar
+import org.json.JSONObject
+
 
 class EventDetailFragment : Fragment(),
     MviView<EventDetailIntent, EventDetailViewState>,
-    SourceAdapter.AdapterCallback {
+    SourceAdapter.AdapterCallback, OnMapReadyCallback {
 
     private val disposable = CompositeDisposable()
     private val args: EventDetailFragmentArgs by navArgs()
@@ -40,14 +45,27 @@ class EventDetailFragment : Fragment(),
         return inflater.inflate(R.layout.event_detail_fragment, container, false)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        googleMapView.getMapAsync(this)
+        googleMapView.onCreate(arguments)
+    }
+
     override fun onStart() {
         super.onStart()
+        googleMapView.onStart()
         bindViewModel()
     }
 
     override fun onStop() {
         super.onStop()
+        googleMapView.onStop()
         disposable.clear()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        googleMapView?.onDestroy()
     }
 
     private fun bindViewModel() {
@@ -108,5 +126,20 @@ class EventDetailFragment : Fragment(),
         val direction =
             EventDetailFragmentDirections.actionEventDetailFragmentToWebContentFragment(source.url)
         findNavController().navigate(direction)
+    }
+
+    override fun onMapReady(map: GoogleMap?) {
+        val jsonObject = JSONObject(
+            "{\n" +
+                    "\"date\": \"2019-11-26T15:28:00Z\",\n" +
+                    "\"type\": \"Point\",\n" +
+                    "\"coordinates\": [\n" +
+                    "-119.779047501,\n" +
+                    "34.497680488\n" +
+                    "]\n" +
+                    "}"
+        )
+        val layer = GeoJsonLayer(map, jsonObject)
+        layer.addLayerToMap()
     }
 }
