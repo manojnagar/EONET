@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.observe.eonet.R
 import com.observe.eonet.mvibase.MviView
@@ -48,11 +47,11 @@ class EventDetailFragment : Fragment(), MviView<EventDetailIntent, EventDetailVi
         disposable.add(viewModel.states().subscribe(this::render))
         viewModel.processIntents(intents())
 
-        sourceInfo.setOnClickListener {
-            val direction =
-                EventDetailFragmentDirections.actionEventDetailFragmentToWebContentFragment("https://inciweb.nwcg.gov/incident/6622/")
-            findNavController().navigate(direction)
-        }
+//        sourceInfo.setOnClickListener {
+//            val direction =
+//                EventDetailFragmentDirections.actionEventDetailFragmentToWebContentFragment("https://inciweb.nwcg.gov/incident/6622/")
+//            findNavController().navigate(direction)
+//        }
     }
 
     override fun intents(): Observable<EventDetailIntent> {
@@ -64,11 +63,17 @@ class EventDetailFragment : Fragment(), MviView<EventDetailIntent, EventDetailVi
 
         if (state.event == null) {
             emptyState.visible = !state.isLoading
-            eventInfo.visible = false
+            title.visible = false
+            category.visible = false
         } else {
             emptyState.visible = false
-            eventInfo.visible = true
-            eventInfo.text = state.event.title
+            title.visible = true
+            title.text = state.event.title
+
+            category.visible = true
+            var categoryData = state.event.categories.joinToString(" #") { it.title }
+            categoryData = "#$categoryData"
+            category.text = categoryData
         }
 
         if (state.error != null) {
