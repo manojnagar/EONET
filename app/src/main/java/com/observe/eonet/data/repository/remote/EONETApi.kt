@@ -20,6 +20,7 @@ interface EONETApi {
     @GET("$CATEGORIES_ENDPOINT/{categoryId}")
     fun fetchCategory(
         @Path("categoryId") categoryId: String,
+        @Query("days") forLastDays: Int,
         @Query("status") status: String
     ): Observable<EOCategory>
 
