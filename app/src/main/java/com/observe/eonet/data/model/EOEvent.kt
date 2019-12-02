@@ -5,7 +5,7 @@ data class EOEvent(
     val title: String,
     val categories: List<EOCategory>,
     val sources: List<EOSource>,
-    val geometries: List<EOGeometry>
+    val geometries: List<EOBaseGeometry>
 )
 
 data class EOSource(
@@ -13,8 +13,16 @@ data class EOSource(
     val url: String
 )
 
-data class EOGeometry(
-    val date: String,
-    val type: String
-    //val coordinates: Array<Float>
-)
+sealed class EOBaseGeometry {
+    data class EOPointGeometry(
+        val date: String,
+        val type: String,
+        val coordinates: Array<Float>
+    ) : EOBaseGeometry()
+
+    data class EOPolygonGeomatry(
+        val date: String,
+        val type: String,
+        val coordinates: Array<Array<Float>>
+    ) : EOBaseGeometry()
+}

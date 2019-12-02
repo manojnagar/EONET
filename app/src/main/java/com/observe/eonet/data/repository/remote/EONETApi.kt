@@ -1,9 +1,7 @@
 package com.observe.eonet.data.repository.remote
 
-import com.observe.eonet.data.model.EOCategory
-import com.observe.eonet.data.model.EOCategoryResponse
-import com.observe.eonet.data.model.EOEvent
-import com.observe.eonet.data.model.EOEventResponse
+import com.google.gson.GsonBuilder
+import com.observe.eonet.data.model.*
 import io.reactivex.Observable
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -40,10 +38,14 @@ interface EONETApi {
         const val CATEGORIES_ENDPOINT = "categories"
 
         fun create(): EONETApi {
+            val gson = GsonBuilder()
+                .registerTypeAdapter(EOBaseGeometry::class.java, GeometryDeserializer())
+                .create()
+
             val retrofit = Retrofit.Builder()
                 .baseUrl(API)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .build()
             return retrofit.create(EONETApi::class.java)
         }
