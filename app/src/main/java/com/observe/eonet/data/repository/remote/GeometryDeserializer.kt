@@ -5,7 +5,7 @@ import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.observe.eonet.data.model.EOBaseGeometry
 import com.observe.eonet.data.model.EOBaseGeometry.EOPointGeometry
-import com.observe.eonet.data.model.EOBaseGeometry.EOPolygonGeomatry
+import com.observe.eonet.data.model.EOBaseGeometry.EOPolygonGeometry
 import java.lang.reflect.Type
 
 class GeometryDeserializer : JsonDeserializer<EOBaseGeometry> {
@@ -19,9 +19,9 @@ class GeometryDeserializer : JsonDeserializer<EOBaseGeometry> {
         return if (type == "Point") {
             context!!.deserialize<EOPointGeometry>(json, EOPointGeometry::class.java)
         } else {
-            context!!.deserialize<EOPolygonGeomatry>(
+            context!!.deserialize<EOPolygonGeometry>(
                 json,
-                EOPolygonGeomatry::class.java
+                EOPolygonGeometry::class.java
             )
         }
     }

@@ -10,4 +10,6 @@
     <string name="no_category_found">No category found</string>
     <string name="title_event_source">Event Source</string>
     <string name="event_data_not_found">Event Data not found</string>
+    <string name="sources">Sources</string>
+    <string name="description">Description</string>
 </resources>

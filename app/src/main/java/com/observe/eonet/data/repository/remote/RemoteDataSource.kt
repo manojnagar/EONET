@@ -17,8 +17,8 @@ class RemoteDataSource : DataSource {
     }
 
     override fun fetchCategory(categoryId: String): Observable<EOCategory> {
-        val openCategory = fetchCategory(categoryId, 10, false)
-        val closedCategory = fetchCategory(categoryId, 10, true)
+        val openCategory = fetchCategory(categoryId, FOR_LAST_DAYS, false)
+        val closedCategory = fetchCategory(categoryId, FOR_LAST_DAYS, true)
         return Observable.merge(openCategory, closedCategory)
     }
 
@@ -38,8 +38,8 @@ class RemoteDataSource : DataSource {
     }
 
     override fun fetchEvents(): Observable<List<EOEvent>> {
-        val openEvents = fetchEvents(forLastDays = 10, closed = false)
-        val closedEvents = fetchEvents(forLastDays = 10, closed = true)
+        val openEvents = fetchEvents(forLastDays = FOR_LAST_DAYS, closed = false)
+        val closedEvents = fetchEvents(forLastDays = FOR_LAST_DAYS, closed = true)
 
         //Merge both the events and return
         return Observable.merge(openEvents, closedEvents)
@@ -54,5 +54,9 @@ class RemoteDataSource : DataSource {
         return eonetApi
             .fetchEvents(forLastDays = forLastDays, status = status)
             .map { response -> response.events }
+    }
+
+    companion object {
+        private const val FOR_LAST_DAYS = 30
     }
 }

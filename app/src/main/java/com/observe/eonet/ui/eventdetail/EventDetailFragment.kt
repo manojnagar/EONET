@@ -12,10 +12,17 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.maps.android.data.geojson.GeoJsonLayer
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolygonOptions
 import com.observe.eonet.R
+import com.observe.eonet.data.model.EOBaseGeometry
+import com.observe.eonet.data.model.EOBaseGeometry.EOPointGeometry
+import com.observe.eonet.data.model.EOBaseGeometry.EOPolygonGeometry
 import com.observe.eonet.data.model.EOSource
 import com.observe.eonet.mvibase.MviView
 import com.observe.eonet.util.RecyclerViewItemDecoration
@@ -25,7 +32,6 @@ import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.event_detail_fragment.*
 import kotlinx.android.synthetic.main.fragment_events.emptyState
 import kotlinx.android.synthetic.main.fragment_events.progressBar
-import org.json.JSONObject
 
 
 class EventDetailFragment : Fragment(),
@@ -35,6 +41,7 @@ class EventDetailFragment : Fragment(),
     private val disposable = CompositeDisposable()
     private val args: EventDetailFragmentArgs by navArgs()
     private lateinit var viewModel: EventDetailViewModel
+    private var readyMap: GoogleMap? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -85,29 +92,51 @@ class EventDetailFragment : Fragment(),
             title.visible = false
             category.visible = false
             sourceTitle.visible = false
+            googleMapView.visible = false
+            locationTitle.visible = false
+            descriptionTitle.visible = false
+            description.visible = false
         } else {
             emptyState.visible = false
             title.visible = true
             title.text = state.event.title
 
-            category.visible = true
-            var categoryData = state.event.categories.joinToString(" #") { it.title }
-            categoryData = "#$categoryData"
-            category.text = categoryData
+            if (state.event.categories.isNotEmpty()) {
+                category.visible = true
+                var categoryData = state.event.categories.joinToString(" #") { it.title }
+                categoryData = "#$categoryData"
+                category.text = categoryData
+            }
 
             //Setup source recycler view
-            sourceTitle.visible = true
-            sourceRecyclerView.layoutManager = LinearLayoutManager(context)
-            sourceRecyclerView.adapter = SourceAdapter(state.event.sources, this)
-            context?.let {
-                sourceRecyclerView
-                    .addItemDecoration(
-                        RecyclerViewItemDecoration(
-                            it.resources.getDimensionPixelSize(R.dimen.events_card_item_layout_margin),
-                            ContextCompat.getColor(it, R.color.event_divider_color),
-                            it.resources.getDimensionPixelSize(R.dimen.events_card_item_divider_height)
+            if (state.event.sources.isNotEmpty()) {
+                sourceTitle.visible = true
+                sourceRecyclerView.layoutManager = LinearLayoutManager(context)
+                sourceRecyclerView.adapter = SourceAdapter(state.event.sources, this)
+                context?.let {
+                    sourceRecyclerView
+                        .addItemDecoration(
+                            RecyclerViewItemDecoration(
+                                it.resources.getDimensionPixelSize(R.dimen.events_card_item_layout_margin),
+                                ContextCompat.getColor(it, R.color.event_divider_color),
+                                it.resources.getDimensionPixelSize(R.dimen.events_card_item_divider_height)
+                            )
                         )
-                    )
+                }
+            }
+
+            //Description
+            if (state.event.description.isNotEmpty()) {
+                descriptionTitle.visible = true
+                description.visible = true
+                description.text = state.event.description
+            }
+
+            //Map view
+            if (state.event.geometries.isNotEmpty()) {
+                googleMapView.visible = true
+                locationTitle.visible = true
+                updateGeometryOnMap(state.event.geometries)
             }
         }
 
@@ -129,17 +158,77 @@ class EventDetailFragment : Fragment(),
     }
 
     override fun onMapReady(map: GoogleMap?) {
-        val jsonObject = JSONObject(
-            "{\n" +
-                    "\"date\": \"2019-11-26T15:28:00Z\",\n" +
-                    "\"type\": \"Point\",\n" +
-                    "\"coordinates\": [\n" +
-                    "-119.779047501,\n" +
-                    "34.497680488\n" +
-                    "]\n" +
-                    "}"
-        )
-        val layer = GeoJsonLayer(map, jsonObject)
-        layer.addLayerToMap()
+        readyMap = map
+        readyMap?.let {
+            it.uiSettings.isZoomControlsEnabled = true
+            it.uiSettings.isZoomGesturesEnabled = true
+            it.uiSettings.isScrollGesturesEnabled = true
+        }
+    }
+
+    private fun updateGeometryOnMap(geometry: List<EOBaseGeometry>) {
+        val pointGeometries = geometry.filterIsInstance<EOPointGeometry>()
+        val polygonGeometries = geometry.filterIsInstance<EOPolygonGeometry>()
+
+        var position: LatLng? = null
+        var zoomLevel = 5.0f
+        for (item in pointGeometries) {
+            val marker = readyMap?.addMarker(convertToMarker(item))
+            position = marker?.position
+            zoomLevel = 5.0f
+        }
+
+        for (item in polygonGeometries) {
+            val polygonOptions = convertToPolygon(item)
+            for (polygonOption in polygonOptions) {
+                val polygon = readyMap?.addPolygon(polygonOption)
+                position = polygon?.points?.get(0)
+                zoomLevel = 10.0f
+            }
+        }
+
+        // Construct a CameraPosition focusing on Mountain View and animate the camera to that position.
+        position?.let {
+            val cameraPosition = CameraPosition.Builder()
+                .target(position)      // Sets the center of the map to Mountain View
+                .zoom(zoomLevel)                   // Sets the zoom
+                .build()
+            readyMap?.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+        }
+    }
+
+    private fun convertToMarker(geometry: EOPointGeometry): MarkerOptions {
+        return MarkerOptions()
+            .position(
+                /**
+                 * In GeoGson format:
+                 * Point coordinates are in x, y order (easting, northing for projected
+                 * coordinates, longitude, and latitude for geographic coordinates):
+                 * Ex. {
+                 *       "type": "Point",
+                 *       "coordinates": [100.0, 0.0]
+                 *      }
+                 *
+                 * LatLong verification for google map:
+                 * List your latitude coordinates before longitude coordinates.
+                 * Check that the first number in your latitude coordinate is between -90 and 90.
+                 * Check that the first number in your longitude coordinate is between -180 and 180.
+                 */
+                LatLng(geometry.coordinates[1], geometry.coordinates[0])
+            )
+            .title(geometry.date)
+    }
+
+    private fun convertToPolygon(geometry: EOPolygonGeometry): List<PolygonOptions> {
+        val polygonOptions = mutableListOf<PolygonOptions>()
+        for (parentArray in geometry.coordinates) {
+            val polygonOption = PolygonOptions()
+            for (item in parentArray) {
+                val latLong = LatLng(item[1], item[0])
+                polygonOption.add(latLong)
+            }
+            polygonOptions.add(polygonOption)
+        }
+        return polygonOptions
     }
 }
