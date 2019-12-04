@@ -179,7 +179,20 @@ class EventDetailFragment : Fragment(),
             it.uiSettings.isMapToolbarEnabled = true
 
             mapReadyIntentPublisher.onNext(MapReadyIntent)
+
+            it.setOnMarkerClickListener { _it ->
+                _it?.let { marker ->
+                    if (marker.isInfoWindowShown) {
+                        marker.hideInfoWindow()
+                    } else {
+                        marker.showInfoWindow()
+                    }
+                }
+                true // Marker click is handled
+            }
         }
+
+
     }
 
     private fun updateGeometryOnMap(geometry: List<EOBaseGeometry>) {
@@ -202,17 +215,6 @@ class EventDetailFragment : Fragment(),
                 position = polygon?.points?.get(0)
                 zoomLevel = 10.0f
             }
-        }
-
-        readyMap?.setOnMarkerClickListener { marker ->
-            marker?.let {
-                if (it.isInfoWindowShown) {
-                    it.hideInfoWindow()
-                } else {
-                    it.showInfoWindow()
-                }
-            }
-            false // Marker click is handled
         }
 
         // Construct a CameraPosition focusing on Mountain View and animate the camera to that position.
