@@ -26,6 +26,7 @@ import com.observe.eonet.data.model.EOBaseGeometry.EOPolygonGeometry
 import com.observe.eonet.data.model.EOSource
 import com.observe.eonet.mvibase.MviView
 import com.observe.eonet.util.RecyclerViewItemDecoration
+import com.observe.eonet.util.formatedDateTime
 import com.observe.eonet.util.visible
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
@@ -177,6 +178,7 @@ class EventDetailFragment : Fragment(),
             val marker = readyMap?.addMarker(convertToMarker(item))
             position = marker?.position
             zoomLevel = 5.0f
+            marker?.showInfoWindow()
         }
 
         for (item in polygonGeometries) {
@@ -228,7 +230,7 @@ class EventDetailFragment : Fragment(),
                  */
                 LatLng(geometry.coordinates[1], geometry.coordinates[0])
             )
-            .title(geometry.date)
+            .title(geometry.date.formatedDateTime())
     }
 
     private fun convertToPolygon(geometry: EOPolygonGeometry): List<PolygonOptions> {
