@@ -80,7 +80,6 @@ dependencies {
 
     // multi dex
     implementation "androidx.multidex:multidex:$multidex_version"
-    implementation 'com.google.maps.android:android-maps-utils:0.5'
 
     testImplementation 'junit:junit:4.12'
     testImplementation "com.nhaarman:mockito-kotlin:$mockitoKotlinVersion"

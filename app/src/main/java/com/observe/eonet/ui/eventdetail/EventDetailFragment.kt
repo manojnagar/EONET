@@ -163,6 +163,7 @@ class EventDetailFragment : Fragment(),
             it.uiSettings.isZoomControlsEnabled = true
             it.uiSettings.isZoomGesturesEnabled = true
             it.uiSettings.isScrollGesturesEnabled = true
+            it.uiSettings.isMapToolbarEnabled = true
         }
     }
 
@@ -185,6 +186,17 @@ class EventDetailFragment : Fragment(),
                 position = polygon?.points?.get(0)
                 zoomLevel = 10.0f
             }
+        }
+
+        readyMap?.setOnMarkerClickListener { marker ->
+            marker?.let {
+                if (it.isInfoWindowShown) {
+                    it.hideInfoWindow()
+                } else {
+                    it.showInfoWindow()
+                }
+            }
+            false // Marker click is handled
         }
 
         // Construct a CameraPosition focusing on Mountain View and animate the camera to that position.
