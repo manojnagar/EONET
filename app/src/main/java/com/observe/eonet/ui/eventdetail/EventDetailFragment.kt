@@ -48,7 +48,6 @@ class EventDetailFragment : Fragment(),
         savedInstanceState: Bundle?
     ): View? {
         viewModel = ViewModelProviders.of(this).get(EventDetailViewModel::class.java)
-        Log.e("manoj", "View model object reference : $viewModel")
         return inflater.inflate(R.layout.event_detail_fragment, container, false)
     }
 
@@ -82,12 +81,10 @@ class EventDetailFragment : Fragment(),
     }
 
     override fun intents(): Observable<EventDetailIntent> {
-        Log.e("manoj", "Event detail id : ${args.eventId}")
         return Observable.just(EventDetailIntent.LoadEventDetailIntent(args.eventId))
     }
 
     override fun render(state: EventDetailViewState) {
-        Log.e("manoj", "Rendering new view state : $state")
         progressBar.visible = state.isLoading
 
         if (state.event == null) {

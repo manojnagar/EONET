@@ -1,6 +1,5 @@
 package com.observe.eonet.ui.eventdetail
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -46,17 +45,11 @@ class EventDetailViewModel : ViewModel(),
 
     private fun compose() {
         disposables.add(intentsSubject
-            .doOnNext { Log.d("manoj", "intent received : $it") }
             .compose(intentFilter)
-            .doOnNext { Log.d("manoj", "Filtered intent : $it") }
             .map(this::actionFromIntent)
-            .doOnNext { Log.d("manoj", "Converted action : $it") }
             .compose(EventDetailProcessorHolder().actionProcessor)
-            .doOnNext { Log.d("manoj", "Result : $it") }
             .scan(EventDetailViewState.idle(), reducer)
-            .doOnNext { Log.d("manoj", "View state : $it") }
             .distinctUntilChanged()
-            .doOnNext { Log.d("manoj", "Different view state : $it") }
             .replay(1)
             .autoConnect(0)
             .subscribe {
