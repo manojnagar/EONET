@@ -10,4 +10,6 @@ sealed class EventDetailResult : MviResult {
         data class Success(val event: EOEvent) : LoadEventDetailResult()
         data class Failure(val error: Throwable) : LoadEventDetailResult()
     }
+
+    object MapReadyResult : EventDetailResult()
 }

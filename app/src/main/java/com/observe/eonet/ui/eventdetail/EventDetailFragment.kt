@@ -26,10 +26,13 @@ import com.observe.eonet.data.model.EOBaseGeometry.EOPointGeometry
 import com.observe.eonet.data.model.EOBaseGeometry.EOPolygonGeometry
 import com.observe.eonet.data.model.EOSource
 import com.observe.eonet.mvibase.MviView
+import com.observe.eonet.ui.eventdetail.EventDetailIntent.LoadEventDetailIntent
+import com.observe.eonet.ui.eventdetail.EventDetailIntent.MapReadyIntent
 import com.observe.eonet.util.RecyclerViewItemDecoration
 import com.observe.eonet.util.formatedDateTime
 import com.observe.eonet.util.visible
 import io.reactivex.Observable
+import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.event_detail_fragment.*
 import kotlinx.android.synthetic.main.fragment_events.emptyState
 import kotlinx.android.synthetic.main.fragment_events.progressBar
@@ -42,6 +45,9 @@ class EventDetailFragment : Fragment(),
     private val args: EventDetailFragmentArgs by navArgs()
     private lateinit var viewModel: EventDetailViewModel
     private var readyMap: GoogleMap? = null
+
+    private val mapReadyIntentPublisher =
+        PublishSubject.create<MapReadyIntent>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -80,8 +86,15 @@ class EventDetailFragment : Fragment(),
         viewModel.processIntents(intents())
     }
 
+    private fun mapReadyIntent(): Observable<MapReadyIntent> {
+        return mapReadyIntentPublisher
+    }
+
     override fun intents(): Observable<EventDetailIntent> {
-        return Observable.just(EventDetailIntent.LoadEventDetailIntent(args.eventId))
+        return Observable.merge(
+            Observable.just(LoadEventDetailIntent(args.eventId)),
+            mapReadyIntent()
+        )
     }
 
     override fun render(state: EventDetailViewState) {
@@ -164,6 +177,8 @@ class EventDetailFragment : Fragment(),
             it.uiSettings.isZoomGesturesEnabled = true
             it.uiSettings.isScrollGesturesEnabled = true
             it.uiSettings.isMapToolbarEnabled = true
+
+            mapReadyIntentPublisher.onNext(MapReadyIntent)
         }
     }
 

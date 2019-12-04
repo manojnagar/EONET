@@ -6,6 +6,9 @@ import androidx.lifecycle.ViewModel
 import com.observe.eonet.mvibase.MviViewModel
 import com.observe.eonet.ui.eventdetail.EventDetailAction.LoadEventDetailAction
 import com.observe.eonet.ui.eventdetail.EventDetailIntent.LoadEventDetailIntent
+import com.observe.eonet.ui.eventdetail.EventDetailIntent.MapReadyIntent
+import com.observe.eonet.ui.eventdetail.EventDetailResult.LoadEventDetailResult
+import com.observe.eonet.ui.eventdetail.EventDetailResult.MapReadyResult
 import com.observe.eonet.util.notOfType
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
@@ -15,8 +18,7 @@ import io.reactivex.subjects.PublishSubject
 
 class EventDetailViewModel : ViewModel(),
     MviViewModel<EventDetailIntent, EventDetailViewState> {
-
-
+    
     private val disposables = CompositeDisposable()
     private val viewStateObservable: MutableLiveData<EventDetailViewState> = MutableLiveData()
     private val intentsSubject: PublishSubject<EventDetailIntent> = PublishSubject.create()
@@ -29,6 +31,7 @@ class EventDetailViewModel : ViewModel(),
         disposables.clear()
         super.onCleared()
     }
+
     override fun processIntents(intents: Observable<EventDetailIntent>) {
         intents.subscribe(intentsSubject)
     }
@@ -43,19 +46,33 @@ class EventDetailViewModel : ViewModel(),
             }
         }
 
+
+    private fun mapReadyIntentProcessor(intent: MapReadyIntent): EventDetailViewState {
+        return viewStateObservable.value ?: EventDetailViewState.idle()
+    }
+
     private fun compose() {
-        disposables.add(intentsSubject
-            .compose(intentFilter)
-            .map(this::actionFromIntent)
-            .compose(EventDetailProcessorHolder().actionProcessor)
-            .scan(EventDetailViewState.idle(), reducer)
-            .distinctUntilChanged()
+        val subscription = intentsSubject
+            .publish { shared ->
+                Observable.merge(
+                    shared.ofType(MapReadyIntent::class.java)
+                        .map(this::mapReadyIntentProcessor),
+                    shared.ofType(LoadEventDetailIntent::class.java)
+                        .compose(intentFilter)
+                        .map(this::actionFromIntent)
+                        .compose(EventDetailProcessorHolder().actionProcessor)
+                        .scan(EventDetailViewState.idle(), reducer)
+                        .distinctUntilChanged { old, new ->
+                            old == new
+                        }
+                )
+            }
             .replay(1)
             .autoConnect(0)
             .subscribe {
                 viewStateObservable.postValue(it)
             }
-        )
+        disposables.add(subscription)
     }
 
     override fun states(): LiveData<EventDetailViewState> = viewStateObservable
@@ -63,6 +80,7 @@ class EventDetailViewModel : ViewModel(),
     private fun actionFromIntent(intent: EventDetailIntent): EventDetailAction {
         return when (intent) {
             is LoadEventDetailIntent -> LoadEventDetailAction(intent.eventId)
+            is MapReadyIntent -> EventDetailAction.MapReadyAction
         }
     }
 
@@ -70,21 +88,23 @@ class EventDetailViewModel : ViewModel(),
         private val reducer =
             BiFunction { previousState: EventDetailViewState, result: EventDetailResult ->
                 when (result) {
-
                     //Handle load event case
-                    is EventDetailResult.LoadEventDetailResult ->
+                    is LoadEventDetailResult ->
                         when (result) {
-                            is EventDetailResult.LoadEventDetailResult.Loading ->
+                            is LoadEventDetailResult.Loading ->
                                 previousState.copy(isLoading = true)
-                            is EventDetailResult.LoadEventDetailResult.Success ->
+                            is LoadEventDetailResult.Success ->
                                 previousState.copy(isLoading = false, event = result.event)
-                            is EventDetailResult.LoadEventDetailResult.Failure ->
+                            is LoadEventDetailResult.Failure ->
                                 previousState.copy(
                                     isLoading = false,
                                     event = null,
                                     error = result.error
                                 )
                         }
+
+                    is MapReadyResult ->
+                        previousState
                 }
             }
     }
