@@ -1,5 +1,7 @@
 package com.observe.eonet.ui.category
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.observe.eonet.mvibase.MviViewModel
 import com.observe.eonet.ui.category.CategoriesAction.LoadCategoriesAction
@@ -8,16 +10,28 @@ import com.observe.eonet.ui.category.CategoriesResult.LoadCategoriesResult
 import com.observe.eonet.util.notOfType
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.subjects.PublishSubject
 
 class CategoryViewModel : ViewModel(), MviViewModel<CategoriesIntent, CategoriesViewState> {
 
-    private val intentsSubject: PublishSubject<CategoriesIntent> = PublishSubject.create()
-    private val statesObservable: Observable<CategoriesViewState> = compose()
 
-    private fun compose(): Observable<CategoriesViewState> {
-        return intentsSubject
+    private val disposables = CompositeDisposable()
+    private val viewStateObservable: MutableLiveData<CategoriesViewState> = MutableLiveData()
+    private val intentsSubject: PublishSubject<CategoriesIntent> = PublishSubject.create()
+
+    init {
+        compose()
+    }
+
+    override fun onCleared() {
+        disposables.clear()
+        super.onCleared()
+    }
+
+    private fun compose() {
+        disposables.add(intentsSubject
             .compose(intentsFilter)
             .map(this::actionFromIntent)
             .compose(CategoriesProcessorHolder().actionProcessor)
@@ -25,6 +39,10 @@ class CategoryViewModel : ViewModel(), MviViewModel<CategoriesIntent, Categories
             .distinctUntilChanged()
             .replay(1)
             .autoConnect(0)
+            .subscribe {
+                viewStateObservable.postValue(it)
+            }
+        )
     }
 
     override fun processIntents(intents: Observable<CategoriesIntent>) {
@@ -47,7 +65,7 @@ class CategoryViewModel : ViewModel(), MviViewModel<CategoriesIntent, Categories
         }
     }
 
-    override fun states(): Observable<CategoriesViewState> = statesObservable
+    override fun states(): LiveData<CategoriesViewState> = viewStateObservable
 
     companion object {
         private val reducer =

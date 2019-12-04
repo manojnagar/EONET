@@ -4,5 +4,5 @@ import com.observe.eonet.mvibase.MviIntent
 
 sealed class EventDetailIntent : MviIntent {
 
-    object LoadEventDetailIntent : EventDetailIntent()
+    data class LoadEventDetailIntent(val eventId: String) : EventDetailIntent()
 }

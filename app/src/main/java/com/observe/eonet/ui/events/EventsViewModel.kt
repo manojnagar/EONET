@@ -1,6 +1,8 @@
 package com.observe.eonet.ui.events
 
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.observe.eonet.mvibase.MviViewModel
 import com.observe.eonet.ui.events.EventsAction.*
@@ -9,20 +11,31 @@ import com.observe.eonet.ui.events.EventsResult.LoadEventsResult
 import com.observe.eonet.util.notOfType
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.subjects.PublishSubject
 
 class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState> {
 
+    private val disposables = CompositeDisposable()
     private val intentsSubject: PublishSubject<EventsIntent> = PublishSubject.create()
-    private val statesObservable: Observable<EventsViewState> = compose()
+    private val viewStateObservable: MutableLiveData<EventsViewState> = MutableLiveData()
+
+    init {
+        compose()
+    }
+
+    override fun onCleared() {
+        disposables.clear()
+        super.onCleared()
+    }
 
     override fun processIntents(intents: Observable<EventsIntent>) {
         intents.subscribe(intentsSubject)
     }
 
-    private fun compose(): Observable<EventsViewState> {
-        return intentsSubject
+    private fun compose() {
+        disposables.add(intentsSubject
             .doOnNext {
                 Log.d(TAG, "New intent : $it")
             }
@@ -46,6 +59,10 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
             .doOnNext {
                 Log.d(TAG, "Notify view state to UI : $it")
             }
+            .subscribe {
+                viewStateObservable.postValue(it)
+            }
+        )
     }
 
     private val intentFilter: ObservableTransformer<EventsIntent, EventsIntent>
@@ -104,5 +121,5 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
     }
 
 
-    override fun states(): Observable<EventsViewState> = statesObservable
+    override fun states(): LiveData<EventsViewState> = viewStateObservable
 }

@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -62,7 +63,9 @@ class CategoryFragment : Fragment(), CategoryAdapter.AdapterCallback,
     }
 
     private fun bindViewModel() {
-        disposables.add(categoryViewModel.states().subscribe(this::render))
+        categoryViewModel.states().observe(this, Observer<CategoriesViewState> {
+            render(it)
+        })
         categoryViewModel.processIntents(intents())
     }
 

@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -19,14 +20,12 @@ import com.observe.eonet.ui.events.EventsIntent.*
 import com.observe.eonet.util.RecyclerViewItemDecoration
 import com.observe.eonet.util.visible
 import io.reactivex.Observable
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.fragment_events.*
 
 class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
     EventsAdapter.AdapterCallback {
 
-    private val disposables = CompositeDisposable()
     private val args: EventsFragmentArgs by navArgs()
     private lateinit var eventsViewModel: EventsViewModel
     private lateinit var adapter: EventsAdapter
@@ -71,7 +70,9 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
     }
 
     private fun bind() {
-        disposables.add(eventsViewModel.states().subscribe(this::render))
+        eventsViewModel.states().observe(this, Observer<EventsViewState> {
+            render(it)
+        })
         eventsViewModel.processIntents(intents())
     }
 
@@ -120,11 +121,6 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
                 .show()
             Log.e(TAG, "Error loading events: ${state.error.localizedMessage}")
         }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        disposables.clear()
     }
 
     companion object {

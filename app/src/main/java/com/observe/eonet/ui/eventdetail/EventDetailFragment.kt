@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -29,7 +30,6 @@ import com.observe.eonet.util.RecyclerViewItemDecoration
 import com.observe.eonet.util.formatedDateTime
 import com.observe.eonet.util.visible
 import io.reactivex.Observable
-import io.reactivex.disposables.CompositeDisposable
 import kotlinx.android.synthetic.main.event_detail_fragment.*
 import kotlinx.android.synthetic.main.fragment_events.emptyState
 import kotlinx.android.synthetic.main.fragment_events.progressBar
@@ -39,7 +39,6 @@ class EventDetailFragment : Fragment(),
     MviView<EventDetailIntent, EventDetailViewState>,
     SourceAdapter.AdapterCallback, OnMapReadyCallback {
 
-    private val disposable = CompositeDisposable()
     private val args: EventDetailFragmentArgs by navArgs()
     private lateinit var viewModel: EventDetailViewModel
     private var readyMap: GoogleMap? = null
@@ -48,8 +47,8 @@ class EventDetailFragment : Fragment(),
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        viewModel = ViewModelProviders.of(this, EventDetailViewModelFactory(args.eventId))
-            .get(EventDetailViewModel::class.java)
+        viewModel = ViewModelProviders.of(this).get(EventDetailViewModel::class.java)
+        Log.e("manoj", "View model object reference : $viewModel")
         return inflater.inflate(R.layout.event_detail_fragment, container, false)
     }
 
@@ -68,7 +67,6 @@ class EventDetailFragment : Fragment(),
     override fun onStop() {
         super.onStop()
         googleMapView.onStop()
-        disposable.clear()
     }
 
     override fun onDestroy() {
@@ -77,15 +75,19 @@ class EventDetailFragment : Fragment(),
     }
 
     private fun bindViewModel() {
-        disposable.add(viewModel.states().subscribe(this::render))
+        viewModel.states().observe(this, Observer<EventDetailViewState> {
+            render(it)
+        })
         viewModel.processIntents(intents())
     }
 
     override fun intents(): Observable<EventDetailIntent> {
-        return Observable.just(EventDetailIntent.LoadEventDetailIntent)
+        Log.e("manoj", "Event detail id : ${args.eventId}")
+        return Observable.just(EventDetailIntent.LoadEventDetailIntent(args.eventId))
     }
 
     override fun render(state: EventDetailViewState) {
+        Log.e("manoj", "Rendering new view state : $state")
         progressBar.visible = state.isLoading
 
         if (state.event == null) {

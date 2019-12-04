@@ -1,5 +1,8 @@
 package com.observe.eonet.ui.eventdetail
 
+import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.observe.eonet.mvibase.MviViewModel
 import com.observe.eonet.ui.eventdetail.EventDetailAction.LoadEventDetailAction
@@ -7,14 +10,26 @@ import com.observe.eonet.ui.eventdetail.EventDetailIntent.LoadEventDetailIntent
 import com.observe.eonet.util.notOfType
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.subjects.PublishSubject
 
-class EventDetailViewModel(private val eventId: String) : ViewModel(),
+class EventDetailViewModel : ViewModel(),
     MviViewModel<EventDetailIntent, EventDetailViewState> {
 
+
+    private val disposables = CompositeDisposable()
+    private val viewStateObservable: MutableLiveData<EventDetailViewState> = MutableLiveData()
     private val intentsSubject: PublishSubject<EventDetailIntent> = PublishSubject.create()
 
+    init {
+        compose()
+    }
+
+    override fun onCleared() {
+        disposables.clear()
+        super.onCleared()
+    }
     override fun processIntents(intents: Observable<EventDetailIntent>) {
         intents.subscribe(intentsSubject)
     }
@@ -29,23 +44,32 @@ class EventDetailViewModel(private val eventId: String) : ViewModel(),
             }
         }
 
-
-    override fun states(): Observable<EventDetailViewState> {
-        return intentsSubject
+    private fun compose() {
+        disposables.add(intentsSubject
+            .doOnNext { Log.d("manoj", "intent received : $it") }
             .compose(intentFilter)
+            .doOnNext { Log.d("manoj", "Filtered intent : $it") }
             .map(this::actionFromIntent)
+            .doOnNext { Log.d("manoj", "Converted action : $it") }
             .compose(EventDetailProcessorHolder().actionProcessor)
+            .doOnNext { Log.d("manoj", "Result : $it") }
             .scan(EventDetailViewState.idle(), reducer)
+            .doOnNext { Log.d("manoj", "View state : $it") }
             .distinctUntilChanged()
+            .doOnNext { Log.d("manoj", "Different view state : $it") }
             .replay(1)
             .autoConnect(0)
-
-
+            .subscribe {
+                viewStateObservable.postValue(it)
+            }
+        )
     }
+
+    override fun states(): LiveData<EventDetailViewState> = viewStateObservable
 
     private fun actionFromIntent(intent: EventDetailIntent): EventDetailAction {
         return when (intent) {
-            is LoadEventDetailIntent -> LoadEventDetailAction(eventId)
+            is LoadEventDetailIntent -> LoadEventDetailAction(intent.eventId)
         }
     }
 
