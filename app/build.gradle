@@ -8,6 +8,8 @@ apply plugin: 'kotlin-kapt'
 
 apply plugin: "androidx.navigation.safeargs.kotlin"
 
+apply plugin: 'com.google.gms.google-services'
+
 android {
 
     compileOptions {
@@ -27,7 +29,7 @@ android {
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
-        multiDexEnabled false
+        multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -80,6 +82,9 @@ dependencies {
 
     // multi dex
     implementation "androidx.multidex:multidex:$multidex_version"
+
+    //Analytics
+    implementation 'com.google.firebase:firebase-analytics:17.2.0'
 
     testImplementation 'junit:junit:4.12'
     testImplementation "com.nhaarman:mockito-kotlin:$mockitoKotlinVersion"
