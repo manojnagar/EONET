@@ -10,7 +10,7 @@ import kotlinx.android.synthetic.main.list_item_event.view.title
 import kotlinx.android.synthetic.main.list_item_source.view.*
 
 class SourceAdapter(
-    private val sourceList: List<EOSource>,
+    private val sourceList: MutableList<EOSource>,
     private val callback: AdapterCallback
 ) :
     RecyclerView.Adapter<SourceAdapter.ViewHolder>() {
@@ -26,6 +26,13 @@ class SourceAdapter(
 
     override fun getItemCount(): Int = sourceList.size
 
+
+    fun updateSourceList(newSourceList: List<EOSource>) {
+        sourceList.clear()
+        sourceList.addAll(newSourceList)
+        notifyDataSetChanged()
+    }
+    
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.bind(sourceList[position], callback)
     }

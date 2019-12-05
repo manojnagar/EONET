@@ -45,6 +45,7 @@ class EventDetailFragment : Fragment(),
     private val args: EventDetailFragmentArgs by navArgs()
     private lateinit var viewModel: EventDetailViewModel
     private var readyMap: GoogleMap? = null
+    private lateinit var adapter: SourceAdapter
 
     private val mapReadyIntentPublisher =
         PublishSubject.create<MapReadyIntent>()
@@ -61,6 +62,23 @@ class EventDetailFragment : Fragment(),
         super.onViewCreated(view, savedInstanceState)
         googleMapView.getMapAsync(this)
         googleMapView.onCreate(arguments)
+        setupRecyclerView()
+    }
+
+    private fun setupRecyclerView() {
+        sourceRecyclerView.layoutManager = LinearLayoutManager(context)
+        adapter = SourceAdapter(mutableListOf(), this)
+        sourceRecyclerView.adapter = adapter
+        context?.let {
+            sourceRecyclerView
+                .addItemDecoration(
+                    RecyclerViewItemDecoration(
+                        it.resources.getDimensionPixelSize(R.dimen.events_card_item_layout_margin),
+                        ContextCompat.getColor(it, R.color.event_divider_color),
+                        it.resources.getDimensionPixelSize(R.dimen.events_card_item_divider_height)
+                    )
+                )
+        }
     }
 
     override fun onStart() {
@@ -105,6 +123,7 @@ class EventDetailFragment : Fragment(),
             title.visible = false
             category.visible = false
             sourceTitle.visible = false
+            sourceRecyclerView.visible = false
             googleMapView.visible = false
             locationTitle.visible = false
             descriptionTitle.visible = false
@@ -119,23 +138,14 @@ class EventDetailFragment : Fragment(),
                 var categoryData = state.event.categories.joinToString(" #") { it.title }
                 categoryData = "#$categoryData"
                 category.text = categoryData
+
             }
 
             //Setup source recycler view
             if (state.event.sources.isNotEmpty()) {
                 sourceTitle.visible = true
-                sourceRecyclerView.layoutManager = LinearLayoutManager(context)
-                sourceRecyclerView.adapter = SourceAdapter(state.event.sources, this)
-                context?.let {
-                    sourceRecyclerView
-                        .addItemDecoration(
-                            RecyclerViewItemDecoration(
-                                it.resources.getDimensionPixelSize(R.dimen.events_card_item_layout_margin),
-                                ContextCompat.getColor(it, R.color.event_divider_color),
-                                it.resources.getDimensionPixelSize(R.dimen.events_card_item_divider_height)
-                            )
-                        )
-                }
+                sourceRecyclerView.visible = true
+                adapter.updateSourceList(state.event.sources)
             }
 
             //Description
