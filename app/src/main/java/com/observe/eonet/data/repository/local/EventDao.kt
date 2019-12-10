@@ -1,10 +1,8 @@
 package com.observe.eonet.data.repository.local
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.room.*
 import com.observe.eonet.data.model.db.DBEvent
+import com.observe.eonet.data.model.db.DBEventAndCategory
 
 @Dao
 interface EventDao {
@@ -12,9 +10,17 @@ interface EventDao {
     @Query("SELECT * FROM events")
     fun getAll(): List<DBEvent>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(vararg event: DBEvent)
 
     @Delete
     fun delete(event: DBEvent)
+
+    @Query("DELETE FROM events")
+    fun deleteAll()
+
+
+    @Transaction
+    @Query("SELECT * FROM categories")
+    fun getEventsAndCategory(): List<DBEventAndCategory>
 }
