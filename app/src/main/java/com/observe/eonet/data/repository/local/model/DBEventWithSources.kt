@@ -1,4 +1,4 @@
-package com.observe.eonet.data.model.db
+package com.observe.eonet.data.repository.local.model
 
 import androidx.room.Embedded
 import androidx.room.Relation

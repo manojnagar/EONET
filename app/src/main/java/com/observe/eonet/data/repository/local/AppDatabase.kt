@@ -4,10 +4,10 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.observe.eonet.data.model.db.DBCategory
-import com.observe.eonet.data.model.db.DBCategoryEventCrossRef
-import com.observe.eonet.data.model.db.DBEvent
-import com.observe.eonet.data.model.db.DBSource
+import com.observe.eonet.data.repository.local.model.DBCategory
+import com.observe.eonet.data.repository.local.model.DBCategoryEventCrossRef
+import com.observe.eonet.data.repository.local.model.DBEvent
+import com.observe.eonet.data.repository.local.model.DBSource
 
 @Database(
     entities = [

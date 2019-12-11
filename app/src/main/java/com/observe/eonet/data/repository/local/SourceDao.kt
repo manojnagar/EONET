@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.observe.eonet.data.model.db.DBSource
+import com.observe.eonet.data.repository.local.model.DBSource
 
 @Dao
 interface SourceDao {

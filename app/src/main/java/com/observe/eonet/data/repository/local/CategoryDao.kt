@@ -1,9 +1,9 @@
 package com.observe.eonet.data.repository.local
 
 import androidx.room.*
-import com.observe.eonet.data.model.db.DBCategory
-import com.observe.eonet.data.model.db.DBCategoryEventCrossRef
-import com.observe.eonet.data.model.db.DBCategoryWithEvents
+import com.observe.eonet.data.repository.local.model.DBCategory
+import com.observe.eonet.data.repository.local.model.DBCategoryEventCrossRef
+import com.observe.eonet.data.repository.local.model.DBCategoryWithEvents
 
 @Dao
 interface CategoryDao {

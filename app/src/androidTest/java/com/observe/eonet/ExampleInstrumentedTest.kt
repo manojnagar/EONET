@@ -2,11 +2,11 @@ package com.observe.eonet
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.observe.eonet.data.model.db.DBCategory
-import com.observe.eonet.data.model.db.DBCategoryEventCrossRef
-import com.observe.eonet.data.model.db.DBEvent
-import com.observe.eonet.data.model.db.DBSource
 import com.observe.eonet.data.repository.local.AppDatabase
+import com.observe.eonet.data.repository.local.model.DBCategory
+import com.observe.eonet.data.repository.local.model.DBCategoryEventCrossRef
+import com.observe.eonet.data.repository.local.model.DBEvent
+import com.observe.eonet.data.repository.local.model.DBSource
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -50,12 +50,32 @@ class ExampleInstrumentedTest {
         var allEvents = eventDao.getAll()
         assertTrue(allEvents.isEmpty())
 
-        val categoryFirst = DBCategory("1", "Title-1", null, "link-1")
-        val categorySecond = DBCategory("2", "Title-2", null, "link-2")
+        val categoryFirst =
+            DBCategory(
+                "1",
+                "Title-1",
+                null,
+                "link-1"
+            )
+        val categorySecond =
+            DBCategory(
+                "2",
+                "Title-2",
+                null,
+                "link-2"
+            )
         db.categoryDao().insertAll(categoryFirst, categorySecond)
         eventDao.insertAll(
-            DBEvent("1", "Title-1", null),
-            DBEvent("2", "Title-2", null)
+            DBEvent(
+                "1",
+                "Title-1",
+                null
+            ),
+            DBEvent(
+                "2",
+                "Title-2",
+                null
+            )
         )
 
         val items = eventDao.getAll()
@@ -81,8 +101,18 @@ class ExampleInstrumentedTest {
         assertTrue(allCategory.isEmpty())
 
         categoryDao.insertAll(
-            DBCategory("1", "Title-1", null, "link-1"),
-            DBCategory("2", "Title-2", null, "link-2")
+            DBCategory(
+                "1",
+                "Title-1",
+                null,
+                "link-1"
+            ),
+            DBCategory(
+                "2",
+                "Title-2",
+                null,
+                "link-2"
+            )
         )
         allCategory = categoryDao.getAll()
         assertEquals(2, allCategory.size)
@@ -104,8 +134,16 @@ class ExampleInstrumentedTest {
         sourceDao.deleteAll()
         assertTrue(sourceDao.getAll().isEmpty())
 
-        val first = DBSource(eventId = "1", id = "x", link = "Link-x")
-        val second = DBSource(eventId = "1", id = "y", link = "Link-y")
+        val first = DBSource(
+            eventId = "1",
+            id = "x",
+            link = "Link-x"
+        )
+        val second = DBSource(
+            eventId = "1",
+            id = "y",
+            link = "Link-y"
+        )
         sourceDao.insertAll(first, second)
         assertEquals(2, sourceDao.getAll().size)
         val items = sourceDao.getAll()
@@ -124,14 +162,42 @@ class ExampleInstrumentedTest {
         val eventDao = db.eventDao()
         val sourceDao = db.sourceDao()
 
-        val E1 = DBEvent(id = "1", title = "Title-1", description = null)
-        val E2 = DBEvent(id = "2", title = "Title-2", description = null)
-        val E3 = DBEvent(id = "3", title = "Title-3", description = null)
+        val E1 = DBEvent(
+            id = "1",
+            title = "Title-1",
+            description = null
+        )
+        val E2 = DBEvent(
+            id = "2",
+            title = "Title-2",
+            description = null
+        )
+        val E3 = DBEvent(
+            id = "3",
+            title = "Title-3",
+            description = null
+        )
 
-        val S11 = DBSource("1", "S11", "link-s11")
-        val S12 = DBSource("1", "S12", "link-s12")
-        val S13 = DBSource("1", "S13", "link-s13")
-        val S21 = DBSource("2", "S21", "link-s21")
+        val S11 = DBSource(
+            "1",
+            "S11",
+            "link-s11"
+        )
+        val S12 = DBSource(
+            "1",
+            "S12",
+            "link-s12"
+        )
+        val S13 = DBSource(
+            "1",
+            "S13",
+            "link-s13"
+        )
+        val S21 = DBSource(
+            "2",
+            "S21",
+            "link-s21"
+        )
 
         //Insert dummy data
         eventDao.insertAll(E1, E2, E3)
@@ -194,17 +260,35 @@ class ExampleInstrumentedTest {
         eventDao.insertAll(E1, E2, E3)
 
         val C1Mapping = arrayOf(
-            DBCategoryEventCrossRef("1", "1"),
-            DBCategoryEventCrossRef("1", "3")
+            DBCategoryEventCrossRef(
+                "1",
+                "1"
+            ),
+            DBCategoryEventCrossRef(
+                "1",
+                "3"
+            )
         )
 
         val C2Mapping = arrayOf(
-            DBCategoryEventCrossRef("2", "1"),
-            DBCategoryEventCrossRef("2", "2"),
-            DBCategoryEventCrossRef("2", "3")
+            DBCategoryEventCrossRef(
+                "2",
+                "1"
+            ),
+            DBCategoryEventCrossRef(
+                "2",
+                "2"
+            ),
+            DBCategoryEventCrossRef(
+                "2",
+                "3"
+            )
         )
         val C3Mapping = arrayOf(
-            DBCategoryEventCrossRef("3", "3")
+            DBCategoryEventCrossRef(
+                "3",
+                "3"
+            )
         )
         categoryDao.insertAllCategoryEventCrossRef(*C1Mapping, *C2Mapping, *C3Mapping)
 
@@ -227,10 +311,19 @@ class ExampleInstrumentedTest {
 
 
     private fun generateCategory(id: String): DBCategory {
-        return DBCategory(id, "Category-Title-$id", null, "Category-link-$id")
+        return DBCategory(
+            id,
+            "Category-Title-$id",
+            null,
+            "Category-link-$id"
+        )
     }
 
     private fun generateEvent(id: String): DBEvent {
-        return DBEvent(id, "Event-Title- $id", "Event-Desc-$id")
+        return DBEvent(
+            id,
+            "Event-Title- $id",
+            "Event-Desc-$id"
+        )
     }
 }
