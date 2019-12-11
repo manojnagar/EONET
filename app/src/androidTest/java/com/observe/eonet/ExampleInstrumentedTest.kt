@@ -1,7 +1,9 @@
 package com.observe.eonet
 
+import android.content.Context
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.observe.eonet.data.repository.local.AppDatabase
 import com.observe.eonet.data.repository.local.model.DBCategory
 import com.observe.eonet.data.repository.local.model.DBCategoryEventCrossRef
@@ -25,8 +27,11 @@ class ExampleInstrumentedTest {
     @Before
     fun setup() {
         // Context of the app under test.
-        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        db = AppDatabase.getInstance(appContext)
+        val appContext = ApplicationProvider.getApplicationContext<Context>()
+//        db = AppDatabase.getInstance(appContext)
+        db = Room.inMemoryDatabaseBuilder(
+            appContext, AppDatabase::class.java
+        ).build()
     }
 
     @Test
