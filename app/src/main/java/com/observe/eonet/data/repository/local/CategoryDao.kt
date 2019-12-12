@@ -12,6 +12,9 @@ interface CategoryDao {
     fun getAll(): List<DBCategory>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(category: DBCategory): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(vararg category: DBCategory)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)

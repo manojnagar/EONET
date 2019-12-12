@@ -13,6 +13,9 @@ interface EventDao {
     fun getAll(): List<DBEvent>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(event: DBEvent): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(vararg event: DBEvent)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
