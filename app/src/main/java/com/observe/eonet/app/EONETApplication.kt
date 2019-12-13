@@ -6,6 +6,7 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.iid.FirebaseInstanceId
 import com.observe.eonet.data.repository.DataRepository
 import com.observe.eonet.data.repository.DataSource
+import com.observe.eonet.data.repository.local.AppDatabase
 import com.observe.eonet.util.schedulers.BaseSchedulerProvider
 import com.observe.eonet.util.schedulers.SchedulerProvider
 
@@ -15,14 +16,14 @@ class EONETApplication : MultiDexApplication() {
         private final val TAG = "EOApp"
         lateinit var dataSource: DataSource
         lateinit var schedulerProvider: BaseSchedulerProvider
+        lateinit var appDatabase: AppDatabase
     }
     override fun onCreate() {
         super.onCreate()
 
-
         dataSource = DataRepository()
         schedulerProvider = SchedulerProvider
-
+        appDatabase = AppDatabase.getInstance(applicationContext)
         registerFCMToken()
     }
 

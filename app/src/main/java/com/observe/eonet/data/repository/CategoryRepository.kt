@@ -5,10 +5,7 @@ import com.observe.eonet.data.model.EOCategory
 import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.data.repository.local.CategoryDao
 import com.observe.eonet.data.repository.local.EventDao
-import com.observe.eonet.data.repository.local.model.DBCategory
 import com.observe.eonet.data.repository.local.model.DBCategoryEventCrossRef
-import com.observe.eonet.data.repository.local.model.DBCategoryWithEvents
-import com.observe.eonet.data.repository.local.model.DBEvent
 import com.observe.eonet.data.repository.remote.CategoryApi
 import io.reactivex.Observable
 
@@ -25,16 +22,38 @@ class CategoryRepository(
         )
     }
 
+    fun getCategory(categoryId: String): Observable<EOCategory> {
+        return Observable.concatArray(
+            getCategoryFromDB(categoryId),
+            getCategoryFromApi(categoryId)
+        )
+    }
+
+    fun getEvents(categoryId: String): Observable<List<EOEvent>> {
+        return getCategory(categoryId).map { it.events }
+    }
+
+    private fun getCategoryFromDB(categoryId: String): Observable<EOCategory> {
+        return Observable.create { categoryDao.get(categoryId) }
+    }
+
     private fun getCategoriesFromDb(): Observable<List<EOCategory>> {
         return Observable.fromCallable {
             categoryDao.getCategoryWithEvents()
-                .map { convertToEOCategory(it) }
+                .map { it.convertToEOCategory() }
         }
             .doOnNext {
-                Log.d(TAG, "Dispatching ${it.size} users from DB...")
+                Log.d(TAG, "Dispatching ${it.size} categories from DB...")
             }
     }
 
+    private fun getCategoryFromApi(categoryId: String): Observable<EOCategory> {
+        return categoryApi.fetchCategory(categoryId)
+            .doOnNext {
+                Log.d(TAG, "Dispatching category from API... ${it.id}")
+                storeCategoriesInDb(listOf(it))
+            }
+    }
 
     private fun getCategoriesFromApi(): Observable<List<EOCategory>> {
         return categoryApi.fetchCategory()
@@ -44,13 +63,12 @@ class CategoryRepository(
             }
     }
 
-
     private fun storeCategoriesInDb(categories: List<EOCategory>) {
         Log.d(TAG, "Inserted ${categories.size} categories from API in DB...")
         categories.forEach { eoCategory ->
-            categoryDao.insert(convertToDBCategory(eoCategory))
+            categoryDao.insert(eoCategory.convertToDBCategory())
             val events = eoCategory.events?.map {
-                convertToDBEvent(it)
+                it.convertToDBEvent()
             }?.toTypedArray() ?: emptyArray()
             eventDao.insertAll(*events)
 
@@ -60,48 +78,6 @@ class CategoryRepository(
                 }.toTypedArray()
             categoryDao.insertAllCategoryEventCrossRef(*crossRef)
         }
-    }
-
-    private fun convertToEOCategory(dbCategoryWithEvents: DBCategoryWithEvents): EOCategory {
-        val category = dbCategoryWithEvents.category
-        val eoEvents = dbCategoryWithEvents.events.map {
-            convertToEOEvent(it)
-        }.toMutableList()
-
-        return EOCategory(
-            id = category.id,
-            title = category.title,
-            link = category.link,
-            events = eoEvents
-        )
-    }
-
-    private fun convertToEOEvent(dbEvent: DBEvent): EOEvent {
-        return EOEvent(
-            id = dbEvent.id,
-            title = dbEvent.title,
-            description = dbEvent.description ?: "",
-            categories = emptyList(),
-            sources = emptyList(),
-            geometries = emptyList()
-        )
-    }
-
-    private fun convertToDBCategory(category: EOCategory): DBCategory {
-        return DBCategory(
-            category.id,
-            category.title,
-            null,
-            category.link
-        )
-    }
-
-    private fun convertToDBEvent(event: EOEvent): DBEvent {
-        return DBEvent(
-            event.id,
-            event.title,
-            event.description
-        )
     }
 
     companion object {
