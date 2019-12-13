@@ -33,12 +33,12 @@ class CategoriesProcessorHolder {
     }
 
     private val downloadCategories =
-        EONETApplication.dataSource.fetchCategory()
+        EONETApplication.categoryRepository.getCategories()
 
     private val downloadCategory = Observable.merge(
         downloadCategories.flatMap { categories ->
             categories.toObservable().map { category ->
-                EONETApplication.dataSource.fetchCategory(category.id)
+                EONETApplication.categoryRepository.getCategory(category.id)
             }
         }, 5
     )

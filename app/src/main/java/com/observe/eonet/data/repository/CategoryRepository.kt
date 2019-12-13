@@ -14,6 +14,7 @@ class CategoryRepository(
 ) {
 
     fun getCategories(): Observable<List<EOCategory>> {
+        Log.d(TAG, "Request received for getCategories")
         return Observable.concatArray(
             getCategoriesFromDb(),
             getCategoriesFromApi()
@@ -21,6 +22,7 @@ class CategoryRepository(
     }
 
     fun getCategory(categoryId: String): Observable<EOCategory> {
+        Log.d(TAG, "Request received for getCategory : $categoryId")
         return Observable.concatArray(
             getCategoryFromDB(categoryId),
             getCategoryFromApi(categoryId)
@@ -28,6 +30,7 @@ class CategoryRepository(
     }
 
     fun getEvents(categoryId: String): Observable<List<EOEvent>> {
+        Log.d(TAG, "Request received for getEvents : $categoryId")
         return getCategory(categoryId).map { it.events }
     }
 
@@ -46,9 +49,11 @@ class CategoryRepository(
     }
 
     private fun getCategoryFromApi(categoryId: String): Observable<EOCategory> {
-        return categoryApi.fetchCategory(categoryId)
+        return categoryApi
+            .fetchCategory(categoryId)
+            .map { it.copy(id = categoryId) }
             .doOnNext {
-                Log.d(TAG, "Dispatching category from API... ${it.id}")
+                Log.d(TAG, "Dispatching ID: ${it.id} category from API... ")
                 storeCategoriesInDb(listOf(it))
             }
     }
@@ -62,7 +67,7 @@ class CategoryRepository(
     }
 
     private fun storeCategoriesInDb(categories: List<EOCategory>) {
-        Log.d(TAG, "Inserted ${categories.size} categories from API in DB...")
+        Log.d(TAG, "Inserting ${categories.size} categories from API in DB...")
         categories.forEach { eoCategory ->
             categoryDao.insert(eoCategory.convertToDBCategory())
             val events = eoCategory.events?.map {
