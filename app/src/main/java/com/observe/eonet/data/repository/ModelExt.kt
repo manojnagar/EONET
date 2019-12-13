@@ -2,9 +2,8 @@ package com.observe.eonet.data.repository
 
 import com.observe.eonet.data.model.EOCategory
 import com.observe.eonet.data.model.EOEvent
-import com.observe.eonet.data.repository.local.model.DBCategory
-import com.observe.eonet.data.repository.local.model.DBCategoryWithEvents
-import com.observe.eonet.data.repository.local.model.DBEvent
+import com.observe.eonet.data.model.EOSource
+import com.observe.eonet.data.repository.local.model.*
 
 fun EOEvent.convertToDBEvent(): DBEvent {
     return DBEvent(this.id, this.title, this.description)
@@ -19,6 +18,23 @@ fun EOCategory.convertToDBCategory(): DBCategory {
     )
 }
 
+fun EOSource.convertToDBSource(eventId: String): DBSource {
+    return DBSource(
+        eventId,
+        this.id,
+        this.url
+    )
+}
+
+fun DBCategory.convertToEOCategory(): EOCategory {
+    return EOCategory(
+        this.id,
+        this.title,
+        this.link,
+        mutableListOf()
+    )
+}
+
 fun DBEvent.convertToEOEvent(): EOEvent {
     return EOEvent(
         id = this.id,
@@ -30,16 +46,22 @@ fun DBEvent.convertToEOEvent(): EOEvent {
     )
 }
 
+fun DBSource.convertToEOSource(): EOSource {
+    return EOSource(this.id, this.link)
+}
+
 fun DBCategoryWithEvents.convertToEOCategory(): EOCategory {
-    val category = this.category
     val eoEvents =
-        this.events
-            .map { it.convertToEOEvent() }
-            .toMutableList()
-    return EOCategory(
-        id = category.id,
-        title = category.title,
-        link = category.link,
-        events = eoEvents
-    )
+        this.events.map { it.convertToEOEvent() }.toMutableList()
+    return this.category.convertToEOCategory().copy(events = eoEvents)
+}
+
+fun DBEventWithSources.convertToEOEvent(): EOEvent {
+    val eoSources = this.sources.map { it.convertToEOSource() }
+    return this.event.convertToEOEvent().copy(sources = eoSources)
+}
+
+fun DBEventWithCategories.convertToEOEvent(): EOEvent {
+    val eoCategories = this.categories.map { it.convertToEOCategory() }
+    return this.event.convertToEOEvent().copy(categories = eoCategories)
 }
