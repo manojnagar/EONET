@@ -4,19 +4,27 @@ import android.util.Log
 import androidx.multidex.MultiDexApplication
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.iid.FirebaseInstanceId
+import com.observe.eonet.data.repository.CategoryRepository
 import com.observe.eonet.data.repository.DataRepository
 import com.observe.eonet.data.repository.DataSource
+import com.observe.eonet.data.repository.EventRepository
 import com.observe.eonet.data.repository.local.AppDatabase
+import com.observe.eonet.data.repository.remote.RemoteDataSource
 import com.observe.eonet.util.schedulers.BaseSchedulerProvider
 import com.observe.eonet.util.schedulers.SchedulerProvider
 
 class EONETApplication : MultiDexApplication() {
 
     companion object {
-        private final val TAG = "EOApp"
+        private val TAG = "EOApp"
         lateinit var dataSource: DataSource
         lateinit var schedulerProvider: BaseSchedulerProvider
         lateinit var appDatabase: AppDatabase
+        lateinit var categoryRepository: CategoryRepository
+        lateinit var eventRepository: EventRepository
+        private val remoteDataSource: DataSource by lazy {
+            RemoteDataSource()
+        }
     }
     override fun onCreate() {
         super.onCreate()
@@ -24,6 +32,14 @@ class EONETApplication : MultiDexApplication() {
         dataSource = DataRepository()
         schedulerProvider = SchedulerProvider
         appDatabase = AppDatabase.getInstance(applicationContext)
+        categoryRepository = CategoryRepository(
+            appDatabase.categoryDao(),
+            remoteDataSource
+        )
+        eventRepository = EventRepository(
+            appDatabase.eventDao(),
+            remoteDataSource
+        )
         registerFCMToken()
     }
 
