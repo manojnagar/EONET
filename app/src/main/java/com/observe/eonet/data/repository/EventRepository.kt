@@ -7,6 +7,7 @@ import com.observe.eonet.data.repository.local.EventDao
 import com.observe.eonet.data.repository.local.model.DBCategoryEventCrossRef
 import com.observe.eonet.data.repository.remote.EventApi
 import io.reactivex.Observable
+import io.reactivex.rxkotlin.Observables
 
 class EventRepository(
     private val eventDao: EventDao,
@@ -15,18 +16,42 @@ class EventRepository(
 ) {
 
     fun getEvent(eventId: String): Observable<EOEvent> {
-        return eventApi.fetchEvent(eventId)
-            .doOnNext {
-                Log.d(TAG, "Dispatching event from API... ${it.id}")
-                storeEventsInDb(listOf(it))
-            }
+        return getEventFromApi(eventId)
     }
 
-    private fun getEventsFromApi(categoryId: String): Observable<List<EOEvent>> {
-        return eventApi.fetchEvents()
+    fun getEvents(): Observable<List<EOEvent>> {
+        return getEventsFromApi()
+    }
+
+    private fun fetchEventsFromDb(): Observable<List<EOEvent>> {
+        return Observables.zip(
+            Observable.fromCallable {
+                eventDao.getEventsWithSources().map { it.convertToEOEvent() }
+            },
+            Observable.fromCallable {
+                eventDao.getEventsWithCategories().map { it.convertToEOEvent() }
+            }) { withSources, withCategories ->
+            withSources.map { eoEvent ->
+                val categories = withCategories.first { it.id == eoEvent.id }.categories
+                eoEvent.copy(categories = categories)
+            }
+        }
+    }
+
+    private fun fetchEventFromDb(eventId: String): Observable<EOEvent> {
+        return Observables.zip(
+            Observable.fromCallable { eventDao.getEventWithSources(eventId).convertToEOEvent() },
+            Observable.fromCallable { eventDao.getEventWithCategories(eventId).convertToEOEvent() }
+        ) { withSources, withCategories ->
+            withSources.copy(categories = withCategories.categories)
+        }
+    }
+
+    private fun getEventFromApi(eventId: String): Observable<EOEvent> {
+        return eventApi.fetchEvent(eventId)
             .doOnNext {
-                Log.d(TAG, "Dispatching ${it.size} events from API...")
-                storeEventsInDb(it)
+                Log.d(TAG, "Dispatching ${it.id} event from API...")
+                storeEventsInDb(listOf(it))
             }
     }
 

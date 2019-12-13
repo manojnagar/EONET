@@ -36,5 +36,13 @@ interface EventDao {
 
     @Transaction
     @Query("SELECT * FROM event")
-    fun getEventWithCategories(): List<DBEventWithCategories>
+    fun getEventsWithCategories(): List<DBEventWithCategories>
+
+    @Transaction
+    @Query("SELECT * FROM event where event_id = :eventId")
+    fun getEventWithSources(eventId: String): DBEventWithSources
+
+    @Transaction
+    @Query("SELECT * FROM event where event_id = :eventId")
+    fun getEventWithCategories(eventId: String): DBEventWithCategories
 }

@@ -306,7 +306,7 @@ class ExampleInstrumentedTest {
         assertEquals(1, categories[2].events.size)
 
         //Read events
-        val events = eventDao.getEventWithCategories()
+        val events = eventDao.getEventsWithCategories()
         assertEquals(3, events.size)
         events.forEach { println("${it.event} -> ${it.categories}") }
         assertEquals(2, events[0].categories.size)
