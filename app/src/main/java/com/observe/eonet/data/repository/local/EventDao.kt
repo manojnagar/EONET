@@ -12,6 +12,9 @@ interface EventDao {
     @Query("SELECT * FROM event")
     fun getAll(): List<DBEvent>
 
+    @Query("SELECT * FROM event where event_id = :eventId")
+    fun get(eventId: String): List<DBEvent>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(event: DBEvent): Long
 
