@@ -63,7 +63,9 @@ dependencies {
 
     // Room
     implementation "androidx.room:room-runtime:$room_version"
+    implementation "androidx.room:room-rxjava2:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
+
 
     // RxJava and RxBinding
     implementation "io.reactivex.rxjava2:rxjava:$rxJavaVersion"
@@ -99,5 +101,6 @@ dependencies {
     // Testing
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation "androidx.arch.core:core-testing:$coreTestingVersion"
+    testImplementation "androidx.room:room-testing:$room_version"
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
