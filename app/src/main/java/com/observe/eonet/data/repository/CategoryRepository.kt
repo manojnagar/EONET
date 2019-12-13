@@ -4,14 +4,12 @@ import android.util.Log
 import com.observe.eonet.data.model.EOCategory
 import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.data.repository.local.CategoryDao
-import com.observe.eonet.data.repository.local.EventDao
 import com.observe.eonet.data.repository.local.model.DBCategoryEventCrossRef
 import com.observe.eonet.data.repository.remote.CategoryApi
 import io.reactivex.Observable
 
 class CategoryRepository(
     private val categoryDao: CategoryDao,
-    private val eventDao: EventDao,
     private val categoryApi: CategoryApi
 ) {
 
@@ -69,8 +67,8 @@ class CategoryRepository(
             categoryDao.insert(eoCategory.convertToDBCategory())
             val events = eoCategory.events?.map {
                 it.convertToDBEvent()
-            }?.toTypedArray() ?: emptyArray()
-            eventDao.insertAll(*events)
+            } ?: emptyList()
+            categoryDao.insertEvents(events)
 
             val crossRef =
                 events.map { event ->

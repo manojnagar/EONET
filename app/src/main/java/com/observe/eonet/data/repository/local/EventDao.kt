@@ -1,10 +1,7 @@
 package com.observe.eonet.data.repository.local
 
 import androidx.room.*
-import com.observe.eonet.data.repository.local.model.DBCategoryEventCrossRef
-import com.observe.eonet.data.repository.local.model.DBEvent
-import com.observe.eonet.data.repository.local.model.DBEventWithCategories
-import com.observe.eonet.data.repository.local.model.DBEventWithSources
+import com.observe.eonet.data.repository.local.model.*
 
 @Dao
 interface EventDao {
@@ -20,6 +17,9 @@ interface EventDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(vararg event: DBEvent)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insertCategories(categories: List<DBCategory>)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertAllCategoryEventCrossRef(vararg categoryEventCrossRef: DBCategoryEventCrossRef)
