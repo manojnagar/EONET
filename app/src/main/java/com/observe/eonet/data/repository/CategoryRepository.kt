@@ -21,21 +21,9 @@ class CategoryRepository(
         )
     }
 
-    fun getCategory(categoryId: String): Observable<EOCategory> {
-        Log.d(TAG, "Request received for getCategory : $categoryId")
-        return Observable.concatArray(
-            getCategoryFromDB(categoryId),
-            getCategoryFromApi(categoryId)
-        )
-    }
-
     fun getEvents(categoryId: String): Observable<List<EOEvent>> {
         Log.d(TAG, "Request received for getEvents : $categoryId")
         return getCategory(categoryId).map { it.events }
-    }
-
-    private fun getCategoryFromDB(categoryId: String): Observable<EOCategory> {
-        return Observable.create { categoryDao.get(categoryId) }
     }
 
     private fun getCategoriesFromDb(): Observable<List<EOCategory>> {
@@ -48,21 +36,37 @@ class CategoryRepository(
             }
     }
 
+    private fun getCategoriesFromApi(): Observable<List<EOCategory>> {
+        return categoryApi.fetchCategory()
+            .doOnNext {
+                Log.d(TAG, "Dispatching ${it.size} categories from API...")
+                storeCategoriesInDb(it)
+            }
+    }
+
+    fun getCategory(categoryId: String): Observable<EOCategory> {
+        Log.d(TAG, "Request received for getCategory : $categoryId")
+        return Observable.merge(
+            getCategoryFromDB(categoryId),
+            getCategoryFromApi(categoryId)
+        )
+    }
+
+    private fun getCategoryFromDB(categoryId: String): Observable<EOCategory> {
+        Log.d(TAG, "Request received for category fetch from DB : $categoryId")
+        return categoryDao.get(categoryId)
+            .map { it.convertToEOCategory() }
+            .toObservable()
+    }
+
     private fun getCategoryFromApi(categoryId: String): Observable<EOCategory> {
+        Log.d(TAG, "Request received for category fetch from API : $categoryId")
         return categoryApi
             .fetchCategory(categoryId)
             .map { it.copy(id = categoryId) }
             .doOnNext {
                 Log.d(TAG, "Dispatching ID: ${it.id} category from API... ")
                 storeCategoriesInDb(listOf(it))
-            }
-    }
-
-    private fun getCategoriesFromApi(): Observable<List<EOCategory>> {
-        return categoryApi.fetchCategory()
-            .doOnNext {
-                Log.d(TAG, "Dispatching ${it.size} categories from API...")
-                storeCategoriesInDb(it)
             }
     }
 

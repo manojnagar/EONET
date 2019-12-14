@@ -5,6 +5,7 @@ import com.observe.eonet.data.repository.local.model.DBCategory
 import com.observe.eonet.data.repository.local.model.DBCategoryEventCrossRef
 import com.observe.eonet.data.repository.local.model.DBCategoryWithEvents
 import com.observe.eonet.data.repository.local.model.DBEvent
+import io.reactivex.Maybe
 
 @Dao
 interface CategoryDao {
@@ -13,7 +14,7 @@ interface CategoryDao {
     fun getAll(): List<DBCategory>
 
     @Query("SELECT * FROM category where category_id == :categoryId")
-    fun get(categoryId: String): DBCategory
+    fun get(categoryId: String): Maybe<DBCategory>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(category: DBCategory): Long

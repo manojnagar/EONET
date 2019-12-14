@@ -4,6 +4,7 @@ import com.observe.eonet.data.model.EOCategory
 import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.data.repository.DataSource
 import io.reactivex.Observable
+import io.reactivex.rxkotlin.Observables
 
 class RemoteDataSource : DataSource {
 
@@ -19,7 +20,16 @@ class RemoteDataSource : DataSource {
     override fun fetchCategory(categoryId: String): Observable<EOCategory> {
         val openCategory = fetchCategory(categoryId, FOR_LAST_DAYS, false)
         val closedCategory = fetchCategory(categoryId, FOR_LAST_DAYS, true)
-        return Observable.merge(openCategory, closedCategory)
+        return Observables.zip(openCategory, closedCategory) { first, second ->
+            val combineEvents = mutableListOf<EOEvent>()
+            first.events?.let {
+                combineEvents.addAll(it)
+            }
+            second.events?.let {
+                combineEvents.addAll(it)
+            }
+            first.copy(events = combineEvents)
+        }
     }
 
     private fun fetchCategory(
@@ -30,6 +40,7 @@ class RemoteDataSource : DataSource {
         val status = if (closed) "closed" else "open"
         return eonetApi
             .fetchCategory(categoryId, forLastDays, status)
+            .map { it.copy(id = categoryId) }
     }
 
     override fun fetchEvents(category: EOCategory): Observable<List<EOEvent>> {
