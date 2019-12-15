@@ -76,12 +76,16 @@ class CategoryRepository(
 
     fun getEvents(categoryId: String): Observable<List<EOEvent>> {
         Log.d(TAG, "Request received for getEvents : $categoryId")
-        return getCategory(categoryId).map { it.events }
+        return getCategory(categoryId).map { category ->
+            val result: List<EOEvent> = category.events ?: listOf()
+            val copyCategory = category.copy(events = mutableListOf())
+            result.map { event -> event.copy(categories = listOf(copyCategory)) }
+        }
     }
 
     private fun getCategoryFromDB(categoryId: String): Observable<EOCategory> {
         Log.d(TAG, "Request received for category fetch from DB : $categoryId")
-        return categoryDao.get(categoryId)
+        return categoryDao.getCategoryWithEvents(categoryId)
             .map { it.convertToEOCategory() }
             .toObservable()
             .doOnNext {

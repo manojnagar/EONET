@@ -37,4 +37,8 @@ interface CategoryDao {
     @Transaction
     @Query("SELECT * FROM category")
     fun getCategoriesWithEvents(): Maybe<List<DBCategoryWithEvents>>
+
+    @Transaction
+    @Query("SELECT * FROM category where category_id = :categoryId")
+    fun getCategoryWithEvents(categoryId: String): Maybe<DBCategoryWithEvents>
 }
