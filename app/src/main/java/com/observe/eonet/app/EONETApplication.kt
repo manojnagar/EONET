@@ -34,10 +34,7 @@ class EONETApplication : MultiDexApplication() {
         schedulerProvider = SchedulerProvider
         appDatabase = AppDatabase.getInstance(applicationContext)
         categoryRepository = Injection.provideCategoryRepository(this)
-        eventRepository = EventRepository(
-            appDatabase.eventDao(),
-            remoteDataSource
-        )
+        eventRepository = Injection.provideEventRepository(this)
         registerFCMToken()
     }
 

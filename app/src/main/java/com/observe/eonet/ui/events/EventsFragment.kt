@@ -16,12 +16,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.observe.eonet.R
 import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.mvibase.MviView
-import com.observe.eonet.ui.events.EventsIntent.*
+import com.observe.eonet.ui.events.EventsIntent.LoadEventsIntent
 import com.observe.eonet.util.RecyclerViewItemDecoration
-import com.observe.eonet.util.visible
+import com.observe.eonet.util.makeInVisible
+import com.observe.eonet.util.makeVisible
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.fragment_events.*
+import kotlinx.android.synthetic.main.fragment_events.view.*
 
 class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
     EventsAdapter.AdapterCallback {
@@ -29,10 +31,8 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
     private val args: EventsFragmentArgs by navArgs()
     private lateinit var eventsViewModel: EventsViewModel
     private lateinit var adapter: EventsAdapter
-    private var selectEventIntentPublisher =
-        PublishSubject.create<SelectEventIntent>()
-    private var detailPageOpenedIntentPublisher =
-        PublishSubject.create<DetailPageOpenedIntent>()
+    private var pullToRefreshIntentPublisher =
+        PublishSubject.create<EventsIntent.PullToRefreshIntent>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -81,45 +81,48 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
     }
 
     //TODO: Create same logic for each user intent
-    private fun selectEventIntent(): Observable<SelectEventIntent> {
-        return selectEventIntentPublisher
-    }
-
-    private fun detailPageOpenedIntent(): Observable<DetailPageOpenedIntent> {
-        return detailPageOpenedIntentPublisher
+    private fun pullToRefreshIntent(): Observable<EventsIntent.PullToRefreshIntent> {
+        return pullToRefreshIntentPublisher
     }
 
     override fun intents(): Observable<EventsIntent> {
         return Observable.merge(
             loadIntent(),
-            selectEventIntent(),
-            detailPageOpenedIntent()
+            pullToRefreshIntent()
         )
     }
 
     override fun render(state: EventsViewState) {
         Log.d(TAG, "Rendering viewState on UI -> $state")
-        if (state.isEventSelected) {
-            findNavController().navigate(R.id.action_navigation_events_to_eventDetailFragment)
-            detailPageOpenedIntentPublisher.onNext(DetailPageOpenedIntent)
-            return
-        }
 
-        progressBar.visible = state.isLoading
+        when (state) {
+            is EventsViewState.LoadingView -> {
+                makeInVisible(errorView, emptyView, dataView)
+                loadingView.makeVisible()
+            }
+            is EventsViewState.ErrorView -> {
+                makeInVisible(loadingView, emptyView, dataView)
+                errorView.makeVisible()
+                errorView.errorMessageView.text = state.message
+            }
+            is EventsViewState.EmptyView -> {
+                makeInVisible(loadingView, errorView, dataView)
+                emptyView.makeVisible()
+            }
+            is EventsViewState.DataView -> {
+                makeInVisible(loadingView, emptyView, errorView)
+                dataView.makeVisible()
+                adapter.appendEvents(state.events)
 
-        if (state.events.isEmpty()) {
-            emptyState.visible = !state.isLoading
-            eventsRecyclerView.visible = false
-        } else {
-            emptyState.visible = false
-            eventsRecyclerView.visible = true
-            adapter.appendEvents(state.events)
-        }
-
-        if (state.error != null) {
-            Toast.makeText(context, getString(R.string.error_loading_events), Toast.LENGTH_SHORT)
-                .show()
-            Log.e(TAG, "Error loading events: ${state.error.localizedMessage}")
+                state.toastMessage?.let {
+                    Toast.makeText(
+                        context,
+                        getString(R.string.error_loading_events),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    Log.e(TAG, "Error loading events: $it")
+                }
+            }
         }
     }
 

@@ -1,12 +1,12 @@
 package com.observe.eonet.ui.events
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.mvibase.MviViewModel
-import com.observe.eonet.ui.events.EventsAction.*
-import com.observe.eonet.ui.events.EventsIntent.*
+import com.observe.eonet.ui.events.EventsAction.LoadEventsAction
+import com.observe.eonet.ui.events.EventsIntent.LoadEventsIntent
 import com.observe.eonet.ui.events.EventsResult.LoadEventsResult
 import com.observe.eonet.util.notOfType
 import io.reactivex.Observable
@@ -36,29 +36,13 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
 
     private fun compose() {
         disposables.add(intentsSubject
-            .doOnNext {
-                Log.d(TAG, "New intent : $it")
-            }
             .compose(intentFilter)
             .map(this::actionFromIntent)
-            .doOnNext {
-
-                Log.d(TAG, "Converted action : $it")
-            }
             .compose(EventsProcessorHolder().actionProcessor)
-            .doOnNext {
-                Log.d(TAG, "Converted result : $it")
-            }
             .scan(EventsViewState.idle(), reducer)
-            .doOnNext {
-                Log.d(TAG, "Converted viewState : $it")
-            }
             .distinctUntilChanged()
             .replay(1)
             .autoConnect(0)
-            .doOnNext {
-                Log.d(TAG, "Notify view state to UI : $it")
-            }
             .subscribe {
                 viewStateObservable.postValue(it)
             }
@@ -78,9 +62,7 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
     private fun actionFromIntent(intent: EventsIntent): EventsAction {
         return when (intent) {
             is LoadEventsIntent -> LoadEventsAction(intent.categoryId)
-            is SelectEventIntent -> SelectEventAction(intent.event)
-            is DetailPageOpenedIntent -> DetailPageOpenedAction
-
+            is EventsIntent.PullToRefreshIntent -> LoadEventsAction(null)
             //TODO: Convert each new intent into action here
         }
     }
@@ -93,28 +75,26 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
                 when (result) {
                     is LoadEventsResult -> when (result) {
                         is LoadEventsResult.Loading -> {
-                            previousState.copy(isLoading = true)
+                            EventsViewState.LoadingView
                         }
                         is LoadEventsResult.Success -> {
-                            val newList = previousState.events.toMutableList()
-                            newList.addAll(result.events)
-                            previousState.copy(isLoading = false, events = newList)
+                            val events = mutableListOf<EOEvent>()
+                            if (previousState is EventsViewState.DataView) {
+                                events.addAll(previousState.events)
+                            }
+                            events.addAll(result.events)
+
+                            //Return result state
+                            if (events.isEmpty()) {
+                                EventsViewState.EmptyView
+                            } else {
+                                EventsViewState.DataView(events = events, toastMessage = null)
+                            }
                         }
                         is LoadEventsResult.Failure -> {
-                            previousState.copy(isLoading = false, error = result.error)
+                            EventsViewState.ErrorView(result.error.localizedMessage ?: "")
                         }
                     }
-
-                    is EventsResult.SelectEventResult -> previousState.copy(
-                        isEventSelected = true,
-                        selectedEvent = result.event
-                    )
-
-                    is EventsResult.DetailPageOpenedResult ->
-                        previousState.copy(
-                            isEventSelected = false,
-                            selectedEvent = null
-                        )
                     //TODO: Implement other results
                 }
             }

@@ -53,7 +53,9 @@ class RemoteDataSource : DataSource {
         val closedEvents = fetchEvents(forLastDays = FOR_LAST_DAYS, closed = true)
 
         //Merge both the events and return
-        return Observable.merge(openEvents, closedEvents)
+        return Observables.zip(openEvents, closedEvents) { openEvents, closeEvents ->
+            openEvents + closeEvents
+        }
     }
 
     override fun fetchEvent(eventId: String): Observable<EOEvent> {

@@ -34,9 +34,6 @@ import com.observe.eonet.util.visible
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.event_detail_fragment.*
-import kotlinx.android.synthetic.main.fragment_events.emptyState
-import kotlinx.android.synthetic.main.fragment_events.progressBar
-
 
 class EventDetailFragment : Fragment(),
     MviView<EventDetailIntent, EventDetailViewState>,

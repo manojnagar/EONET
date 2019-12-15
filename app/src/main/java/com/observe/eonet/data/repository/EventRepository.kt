@@ -6,6 +6,7 @@ import com.observe.eonet.data.repository.local.EventDao
 import com.observe.eonet.data.repository.local.model.DBCategoryEventCrossRef
 import com.observe.eonet.data.repository.remote.EventApi
 import io.reactivex.Observable
+import io.reactivex.functions.Function
 import io.reactivex.rxkotlin.Observables
 
 class EventRepository(
@@ -17,10 +18,22 @@ class EventRepository(
     }
 
     fun getEvents(): Observable<List<EOEvent>> {
-        return getEventsFromApi()
+        Log.d(TAG, "Request received for getEvents")
+        var dbReturnAnItem = false
+        val dbObservable = getEventsFromDb()
+            .doOnNext { dbReturnAnItem = true }
+        val apiObservable = getEventsFromApi()
+            .onErrorResumeNext(Function { error ->
+                if (dbReturnAnItem) {
+                    Observable.error(error)
+                } else {
+                    Observable.empty<List<EOEvent>>()
+                }
+            })
+        return dbObservable.concatWith(apiObservable)
     }
 
-    private fun fetchEventsFromDb(): Observable<List<EOEvent>> {
+    private fun getEventsFromDb(): Observable<List<EOEvent>> {
         return Observables.zip(
             Observable.fromCallable {
                 eventDao.getEventsWithSources().map { it.convertToEOEvent() }
@@ -32,10 +45,10 @@ class EventRepository(
                 val categories = withCategories.first { it.id == eoEvent.id }.categories
                 eoEvent.copy(categories = categories)
             }
-        }
+        }.filter { it.isNotEmpty() }
     }
 
-    private fun fetchEventFromDb(eventId: String): Observable<EOEvent> {
+    private fun getEventFromDb(eventId: String): Observable<EOEvent> {
         return Observables.zip(
             Observable.fromCallable { eventDao.getEventWithSources(eventId).convertToEOEvent() },
             Observable.fromCallable { eventDao.getEventWithCategories(eventId).convertToEOEvent() }
