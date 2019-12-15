@@ -299,7 +299,7 @@ class ExampleInstrumentedTest {
 
         //Read categories
         val categories = categoryDao
-            .getCategoryWithEvents().toObservable()
+            .getCategoriesWithEvents().toObservable()
             .test()
             .assertValue { result ->
                 assertEquals(3, result.size)

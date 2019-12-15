@@ -37,7 +37,7 @@ class CategoryRepository(
     }
 
     private fun getCategoriesFromDb(): Observable<List<EOCategory>> {
-        return categoryDao.getCategoryWithEvents()
+        return categoryDao.getCategoriesWithEvents()
             .toObservable()
             .filter { it.isNotEmpty() }
             .map { categories ->
