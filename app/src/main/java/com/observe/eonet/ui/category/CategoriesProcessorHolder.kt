@@ -11,38 +11,36 @@ import io.reactivex.rxkotlin.toObservable
 
 class CategoriesProcessorHolder {
 
+    private val categoriesToUpdateTransformer =
+        ObservableTransformer<List<EOCategory>, LoadCategoriesResult> { categories ->
+            categories.map { LoadCategoriesResult.Update(it) }
+                .cast(LoadCategoriesResult::class.java)
+        }
+
+    private fun downloadCategoryEvents(categories: List<EOCategory>): Observable<LoadCategoriesResult> {
+        return categories
+            .map { it.id }.distinct() // find different ids
+            .toObservable()
+            .flatMap({
+                EONETApplication.categoryRepository.getCategory(it)
+                    .subscribeOn(EONETApplication.schedulerProvider.io()) // Parallel execution
+                    .onErrorResumeNext(Observable.empty<EOCategory>())
+            }, 4)
+            .scan(categories) { existingCategories, updatedCategory ->
+                existingCategories.map { it.mergeEvents(updatedCategory) }
+            }
+            .compose(categoriesToUpdateTransformer)
+    }
+
     private val loadCategoryProcessorHolder =
         ObservableTransformer<LoadCategoriesAction, LoadCategoriesResult> { actions ->
             actions.flatMap {
-
-                val categoryRepository = EONETApplication.categoryRepository
-                categoryRepository.getCategories()
+                EONETApplication.categoryRepository.getCategories()
                     .subscribeOn(EONETApplication.schedulerProvider.io())
                     .observeOn(EONETApplication.schedulerProvider.ui())
-                    .doOnNext { categories ->
-                        Observable.just(LoadCategoriesResult.Update(categories))
-                            .cast(LoadCategoriesResult::class.java)
-                    }
-                    .lastElement()
-                    .toObservable()
-                    .switchMap { categories ->
-                        categories.toObservable()
-                            .map { category -> category.id }
-                            .distinct()
-                            .flatMap({ categoryId ->
-                                categoryRepository.getCategory(categoryId)
-                                    .subscribeOn(EONETApplication.schedulerProvider.io())
-                                    .onErrorResumeNext(Observable.empty<EOCategory>())
-                            }, 5)
-                            .scan(categories) { existingCategories, updatedCategory ->
-                                existingCategories
-                                    .map { existingCategory ->
-                                        existingCategory.mergeEvents(updatedCategory)
-                                    }
-                            }
-                            .map { LoadCategoriesResult.Update(it) }
-                            .cast(LoadCategoriesResult::class.java)
-                    }
+                    .doOnNext { Observable.just(it).compose(categoriesToUpdateTransformer) }
+                    .lastElement().toObservable() // Convert last element to Observable
+                    .switchMap { categories -> downloadCategoryEvents(categories) }
                     .startWith(LoadCategoriesResult.Loading)
                     .concatWith(Observable.just(LoadCategoriesResult.Complete))
                     .onErrorReturn(LoadCategoriesResult::Failure)
@@ -52,9 +50,8 @@ class CategoriesProcessorHolder {
     internal var actionProcessor =
         ObservableTransformer<CategoriesAction, CategoriesResult> { actions ->
             actions.publish { shared ->
-                    shared.ofType(LoadCategoriesAction::class.java).compose(
-                        loadCategoryProcessorHolder
-                    )
+                shared.ofType(LoadCategoriesAction::class.java)
+                    .compose(loadCategoryProcessorHolder)
                     .cast(CategoriesResult::class.java)
                     .mergeWith(
                         // Error for not implemented actions
