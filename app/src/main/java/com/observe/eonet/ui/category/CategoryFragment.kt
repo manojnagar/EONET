@@ -17,6 +17,8 @@ import com.observe.eonet.data.model.EOCategory
 import com.observe.eonet.mvibase.MviView
 import com.observe.eonet.ui.category.CategoriesIntent.LoadCategoriesIntent
 import com.observe.eonet.util.RecyclerViewItemDecoration
+import com.observe.eonet.util.makeInVisible
+import com.observe.eonet.util.makeVisible
 import com.observe.eonet.util.visible
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
@@ -85,23 +87,40 @@ class CategoryFragment : Fragment(), CategoryAdapter.AdapterCallback,
     }
 
     override fun render(state: CategoriesViewState) {
-        progressBar.visible = state.isLoading
+        Log.d(TAG, "New categories screen UI state : $state")
+        when (state) {
+            is CategoriesViewState.LoadingView -> {
+                makeInVisible(errorView, emptyView, dataView)
+                loadingView.makeVisible()
+            }
+            is CategoriesViewState.EmptyView -> {
+                makeInVisible(loadingView, errorView, dataView)
+                emptyView.makeVisible()
+            }
+            is CategoriesViewState.ErrorView -> {
+                makeInVisible(loadingView, emptyView, dataView)
+                errorView.makeVisible()
 
-        updatingResultProgressBar.visible = !state.isUpdateComplete
+                errorMessageView.text = state.message
+            }
+            is CategoriesViewState.DataView -> {
+                makeInVisible(loadingView, emptyView, errorView)
+                dataView.makeVisible()
 
-        if (state.categories.isEmpty()) {
-            emptyState.visible = !state.isLoading
-            categoryRecyclerView.visible = false
-        } else {
-            emptyState.visible = false
-            categoryRecyclerView.visible = true
-            adapter.appendCategories(state.categories)
-        }
+                //Bind data
+                loadingResultProgressBar.visible = state.isLoadingInProgress
+                adapter.appendCategories(state.categories)
 
-        if (state.error != null) {
-            Toast.makeText(context, getString(R.string.error_loading_events), Toast.LENGTH_SHORT)
+                state.toastMessage?.let {
+                    Toast.makeText(
+                        context,
+                        getString(R.string.error_loading_events),
+                        Toast.LENGTH_SHORT
+                    )
                 .show()
-            Log.e(TAG, "Error loading categories: ${state.error.localizedMessage}")
+                    Log.e(TAG, "Error loading categories: $it")
+                }
+            }
         }
     }
 

@@ -27,10 +27,11 @@ class CategoryRepository(
     }
 
     private fun getCategoriesFromDb(): Observable<List<EOCategory>> {
-        return Observable.fromCallable {
-            categoryDao.getCategoryWithEvents()
-                .map { it.convertToEOCategory() }
-        }
+        return categoryDao.getCategoryWithEvents()
+            .toObservable()
+            .map { categories ->
+                categories.map { it.convertToEOCategory() }
+            }
             .doOnNext {
                 Log.d(TAG, "Dispatching ${it.size} categories from DB...")
             }

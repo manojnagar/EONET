@@ -72,27 +72,35 @@ class CategoryViewModel : ViewModel(), MviViewModel<CategoriesIntent, Categories
             BiFunction { previousState: CategoriesViewState, result: CategoriesResult ->
                 when (result) {
                     is LoadCategoriesResult -> when (result) {
-                        is LoadCategoriesResult.Loading -> previousState.copy(
-                            isLoading = true,
-                            isUpdateComplete = true
-                        )
+                        is LoadCategoriesResult.Loading -> CategoriesViewState.LoadingView
 
                         is LoadCategoriesResult.Update -> {
-                            previousState.copy(
-                                isLoading = false,
-                                isUpdateComplete = false,
-                                categories = result.categories
-                            )
+                            if (previousState is CategoriesViewState.DataView) {
+                                previousState.copy(categories = result.categories)
+                            } else {
+                                CategoriesViewState.DataView(
+                                    isLoadingInProgress = true,
+                                    categories = result.categories,
+                                    toastMessage = null
+                                )
+                            }
                         }
 
                         is LoadCategoriesResult.Complete -> {
-                            previousState.copy(isLoading = false, isUpdateComplete = true)
+                            if (previousState is CategoriesViewState.DataView) {
+                                if (previousState.categories.isEmpty()) {
+                                    CategoriesViewState.EmptyView
+                                } else {
+                                    previousState.copy(isLoadingInProgress = false)
+                                }
+                            } else {
+                                CategoriesViewState.EmptyView
+                            }
                         }
 
                         is LoadCategoriesResult.Failure ->
-                            previousState.copy(
-                                isLoading = false, isUpdateComplete = true,
-                                error = result.error
+                            CategoriesViewState.ErrorView(
+                                result.error.localizedMessage ?: "Something went wrong"
                             )
                     }
                 }

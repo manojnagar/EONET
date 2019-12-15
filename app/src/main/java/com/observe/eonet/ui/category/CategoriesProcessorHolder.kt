@@ -86,12 +86,29 @@ class CategoriesProcessorHolder {
             }
         }
 
+    private val newLoadCategoryProcessorHolder =
+        ObservableTransformer<LoadCategoriesAction, LoadCategoriesResult>
+        { actions ->
+            actions.flatMap {
+                EONETApplication.categoryRepository.getCategories()
+                    .map { categories -> LoadCategoriesResult.Update(categories) }
+                    .cast(LoadCategoriesResult::class.java)
+                    .onErrorReturn(LoadCategoriesResult::Failure)
+                    .subscribeOn(EONETApplication.schedulerProvider.io())
+                    .observeOn(EONETApplication.schedulerProvider.ui())
+                    .startWith(LoadCategoriesResult.Loading)
+                    .doOnComplete {
+                        updateCompleteSubject.onNext(LoadCategoriesResult.Complete)
+                    }
+            }
+        }
+
     internal var actionProcessor =
         ObservableTransformer<CategoriesAction, CategoriesResult> { actions ->
             actions.publish { shared ->
                 Observable.merge(
                     shared.ofType(LoadCategoriesAction::class.java).compose(
-                        loadCategoryProcessorHolder
+                        newLoadCategoryProcessorHolder
                     ),
                     updateCompleteSubject
                 )
