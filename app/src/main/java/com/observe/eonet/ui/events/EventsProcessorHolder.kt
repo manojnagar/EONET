@@ -9,34 +9,36 @@ import io.reactivex.ObservableTransformer
 
 class EventsProcessorHolder {
 
+    private fun getEventsForCategory(categoryId: String): Observable<List<EOEvent>> {
+        return EONETApplication.categoryRepository.getEvents(categoryId)
+    }
+
+    private fun getEvents(): Observable<List<EOEvent>> {
+        return EONETApplication.eventRepository.getEvents()
+    }
+
+    private fun getEvents(categoryId: String?): Observable<List<EOEvent>> {
+        return if (categoryId != null) getEventsForCategory(categoryId) else getEvents()
+    }
+
     private val loadEventsProcessor =
         ObservableTransformer<LoadEventsAction, LoadEventsResult> { actions ->
             actions.flatMap { action ->
-                val observable = if (action.categoryId == null) {
-                    EONETApplication.dataSource.fetchEvents()
-                } else {
-                    EONETApplication.dataSource.fetchCategory(action.categoryId)
-                        .map { category ->
-                            category.events ?: emptyList<EOEvent>()
-                        }
-                }
-                observable
+                getEvents(action.categoryId)
                     .map { events -> LoadEventsResult.Success(events) }
                     .cast(LoadEventsResult::class.java)
-                    .onErrorReturn(LoadEventsResult::Failure)
                     .subscribeOn(EONETApplication.schedulerProvider.io())
                     .observeOn(EONETApplication.schedulerProvider.ui())
                     .startWith(LoadEventsResult.Loading)
+                    .onErrorReturn(LoadEventsResult::Failure)
             }
         }
 
     internal var actionProcessor =
         ObservableTransformer<EventsAction, EventsResult> { actions ->
             actions.publish { shared ->
-                Observable.merge(
-                    shared.ofType(LoadEventsAction::class.java).compose(loadEventsProcessor),
-                    Observable.empty()
-                )
+                shared.ofType(LoadEventsAction::class.java)
+                    .compose(loadEventsProcessor)
                     .cast(EventsResult::class.java)
                     .mergeWith(
                         // Error for not implemented actions

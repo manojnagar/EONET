@@ -33,6 +33,8 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
     private lateinit var adapter: EventsAdapter
     private var pullToRefreshIntentPublisher =
         PublishSubject.create<EventsIntent.PullToRefreshIntent>()
+    private var retryLoadIntentPublisher =
+        PublishSubject.create<EventsIntent.RetryLoadEventIntent>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -62,6 +64,10 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
                     )
                 )
         }
+
+        retryButton.setOnClickListener {
+            retryLoadIntentPublisher.onNext(EventsIntent.RetryLoadEventIntent)
+        }
     }
 
     override fun onStart() {
@@ -85,10 +91,15 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
         return pullToRefreshIntentPublisher
     }
 
+    private fun retryLoadEventIntent(): Observable<EventsIntent.RetryLoadEventIntent> {
+        return retryLoadIntentPublisher
+    }
+
     override fun intents(): Observable<EventsIntent> {
         return Observable.merge(
             loadIntent(),
-            pullToRefreshIntent()
+            pullToRefreshIntent(),
+            retryLoadEventIntent()
         )
     }
 

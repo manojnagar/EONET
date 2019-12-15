@@ -63,6 +63,7 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
         return when (intent) {
             is LoadEventsIntent -> LoadEventsAction(intent.categoryId)
             is EventsIntent.PullToRefreshIntent -> LoadEventsAction(null)
+            is EventsIntent.RetryLoadEventIntent -> LoadEventsAction(null)
             //TODO: Convert each new intent into action here
         }
     }
