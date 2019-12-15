@@ -93,13 +93,13 @@ class CategoriesProcessorHolder {
                 EONETApplication.categoryRepository.getCategories()
                     .map { categories -> LoadCategoriesResult.Update(categories) }
                     .cast(LoadCategoriesResult::class.java)
-                    .onErrorReturn(LoadCategoriesResult::Failure)
                     .subscribeOn(EONETApplication.schedulerProvider.io())
                     .observeOn(EONETApplication.schedulerProvider.ui())
                     .startWith(LoadCategoriesResult.Loading)
                     .doOnComplete {
                         updateCompleteSubject.onNext(LoadCategoriesResult.Complete)
                     }
+                    .onErrorReturn(LoadCategoriesResult::Failure)
             }
         }
 

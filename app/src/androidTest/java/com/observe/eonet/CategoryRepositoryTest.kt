@@ -1,15 +1,18 @@
 package com.observe.eonet
 
 import android.content.Context
+import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.observe.eonet.data.repository.CategoryRepository
 import com.observe.eonet.data.repository.local.AppDatabase
+import com.observe.eonet.data.repository.remote.RemoteDataSource
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import retrofit2.HttpException
@@ -25,19 +28,14 @@ class CategoryRepositoryTest {
     fun setup() {
         // Context of the app under test.
         val appContext = ApplicationProvider.getApplicationContext<Context>()
+        db = Room.inMemoryDatabaseBuilder(appContext, AppDatabase::class.java)
+            .allowMainThreadQueries() // allowing main thread queries, just for testing
+            .build()
+        repository = CategoryRepository(
+            db.categoryDao(),
+            RemoteDataSource()
+        )
         repository = Injection.provideCategoryRepository(appContext)
-//        db = Room.databaseBuilder(
-//            appContext, AppDatabase::class.java,
-//            "app_database"
-//        ).build()
-//            .allowMainThreadQueries() // allowing main thread queries, just for testing
-//        val db = Room.inMemoryDatabaseBuilder(
-//            appContext, AppDatabase::class.java
-//        ).build()
-        /*            .test()
-            .assertValue { category: EOCategory ->
-                true
-            }*/
     }
 
     @After
@@ -47,6 +45,30 @@ class CategoryRepositoryTest {
     }
 
     @Test
+    fun fetchCategories() {
+        val latch = CountDownLatch(1)
+        repository.getCategories()
+            .subscribeBy(
+                onNext = {
+                    println("Output: $it")
+                },
+                onComplete = {
+                    println("OnComplete")
+                    latch.countDown()
+                },
+                onError = {
+                    println("Error: $it")
+                    latch.countDown()
+                }
+            )
+        latch.await()
+
+        runBlocking { delay(1000) }
+    }
+
+
+    @Test
+    @Ignore("Testing categories")
     fun fetchCategory() {
         val latch = CountDownLatch(1)
         repository.getCategory("6555")

@@ -298,12 +298,18 @@ class ExampleInstrumentedTest {
         categoryDao.insertAllCategoryEventCrossRef(*C1Mapping, *C2Mapping, *C3Mapping)
 
         //Read categories
-        val categories = categoryDao.getCategoryWithEvents()
-        assertEquals(3, categories.size)
-        categories.forEach { println("${it.category} -> ${it.events}") }
-        assertEquals(2, categories[0].events.size)
-        assertEquals(3, categories[1].events.size)
-        assertEquals(1, categories[2].events.size)
+        val categories = categoryDao
+            .getCategoryWithEvents().toObservable()
+            .test()
+            .assertValue { result ->
+                assertEquals(3, result.size)
+                result.forEach { println("${it.category} -> ${it.events}") }
+                assertEquals(2, result[0].events.size)
+                assertEquals(3, result[1].events.size)
+                assertEquals(1, result[2].events.size)
+                true
+            }
+
 
         //Read events
         val events = eventDao.getEventsWithCategories()

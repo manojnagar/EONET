@@ -7,6 +7,7 @@ import com.observe.eonet.data.repository.local.CategoryDao
 import com.observe.eonet.data.repository.local.model.DBCategoryEventCrossRef
 import com.observe.eonet.data.repository.remote.CategoryApi
 import io.reactivex.Observable
+import io.reactivex.functions.Function
 
 class CategoryRepository(
     private val categoryDao: CategoryDao,
@@ -15,9 +16,22 @@ class CategoryRepository(
 
     fun getCategories(): Observable<List<EOCategory>> {
         Log.d(TAG, "Request received for getCategories")
+        val dbObservable = getCategoriesFromDb()
+        val apiObservable = getCategoriesFromApi()
         return Observable.concatArray(
-            getCategoriesFromDb(),
-            getCategoriesFromApi()
+            dbObservable,
+            apiObservable
+                .onErrorResumeNext(Function { error ->
+                    dbObservable.isEmpty
+                        .toObservable()
+                        .flatMap { empty: Boolean ->
+                            if (empty) {
+                                Observable.error(error)
+                            } else {
+                                Observable.empty<List<EOCategory>>()
+                            }
+                        }
+                })
         )
     }
 
@@ -29,6 +43,7 @@ class CategoryRepository(
     private fun getCategoriesFromDb(): Observable<List<EOCategory>> {
         return categoryDao.getCategoryWithEvents()
             .toObservable()
+            .filter { it.isNotEmpty() }
             .map { categories ->
                 categories.map { it.convertToEOCategory() }
             }

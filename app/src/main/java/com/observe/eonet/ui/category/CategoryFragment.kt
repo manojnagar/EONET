@@ -16,12 +16,14 @@ import com.observe.eonet.R
 import com.observe.eonet.data.model.EOCategory
 import com.observe.eonet.mvibase.MviView
 import com.observe.eonet.ui.category.CategoriesIntent.LoadCategoriesIntent
+import com.observe.eonet.ui.category.CategoriesIntent.RetryLoadCategoriesIntent
 import com.observe.eonet.util.RecyclerViewItemDecoration
 import com.observe.eonet.util.makeInVisible
 import com.observe.eonet.util.makeVisible
 import com.observe.eonet.util.visible
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.fragment_category.*
 
 class CategoryFragment : Fragment(), CategoryAdapter.AdapterCallback,
@@ -30,6 +32,8 @@ class CategoryFragment : Fragment(), CategoryAdapter.AdapterCallback,
     private val disposables = CompositeDisposable()
     private lateinit var adapter: CategoryAdapter
     private lateinit var categoryViewModel: CategoryViewModel
+    private var retryLoadIntentPublisher =
+        PublishSubject.create<RetryLoadCategoriesIntent>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,6 +61,10 @@ class CategoryFragment : Fragment(), CategoryAdapter.AdapterCallback,
                     )
                 )
         }
+
+        retryButton.setOnClickListener {
+            retryLoadIntentPublisher.onNext(RetryLoadCategoriesIntent)
+        }
     }
 
     override fun onStart() {
@@ -82,8 +90,15 @@ class CategoryFragment : Fragment(), CategoryAdapter.AdapterCallback,
         findNavController().navigate(direction)
     }
 
+    private fun retryLoadCategories(): Observable<RetryLoadCategoriesIntent> {
+        return retryLoadIntentPublisher
+    }
+
     override fun intents(): Observable<CategoriesIntent> {
-        return Observable.just(LoadCategoriesIntent)
+        return Observable.merge(
+            Observable.just(LoadCategoriesIntent),
+            retryLoadCategories()
+        )
     }
 
     override fun render(state: CategoriesViewState) {

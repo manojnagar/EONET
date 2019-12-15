@@ -1,11 +1,13 @@
 package com.observe.eonet.ui.category
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.observe.eonet.mvibase.MviViewModel
 import com.observe.eonet.ui.category.CategoriesAction.LoadCategoriesAction
 import com.observe.eonet.ui.category.CategoriesIntent.LoadCategoriesIntent
+import com.observe.eonet.ui.category.CategoriesIntent.RetryLoadCategoriesIntent
 import com.observe.eonet.ui.category.CategoriesResult.LoadCategoriesResult
 import com.observe.eonet.util.notOfType
 import io.reactivex.Observable
@@ -62,14 +64,17 @@ class CategoryViewModel : ViewModel(), MviViewModel<CategoriesIntent, Categories
     private fun actionFromIntent(intent: CategoriesIntent): CategoriesAction {
         return when (intent) {
             is LoadCategoriesIntent -> LoadCategoriesAction
+            is RetryLoadCategoriesIntent -> LoadCategoriesAction
         }
     }
 
     override fun states(): LiveData<CategoriesViewState> = viewStateObservable
 
     companion object {
+        private val TAG = "CategoryVM"
         private val reducer =
             BiFunction { previousState: CategoriesViewState, result: CategoriesResult ->
+                Log.d(TAG, "Category VM new result: $result")
                 when (result) {
                     is LoadCategoriesResult -> when (result) {
                         is LoadCategoriesResult.Loading -> CategoriesViewState.LoadingView
@@ -98,10 +103,12 @@ class CategoryViewModel : ViewModel(), MviViewModel<CategoriesIntent, Categories
                             }
                         }
 
-                        is LoadCategoriesResult.Failure ->
+                        is LoadCategoriesResult.Failure -> {
                             CategoriesViewState.ErrorView(
                                 result.error.localizedMessage ?: "Something went wrong"
                             )
+                        }
+
                     }
                 }
             }
