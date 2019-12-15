@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.multidex.MultiDexApplication
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.iid.FirebaseInstanceId
+import com.observe.eonet.Injection
 import com.observe.eonet.data.repository.CategoryRepository
 import com.observe.eonet.data.repository.DataRepository
 import com.observe.eonet.data.repository.DataSource
@@ -32,10 +33,7 @@ class EONETApplication : MultiDexApplication() {
         dataSource = DataRepository()
         schedulerProvider = SchedulerProvider
         appDatabase = AppDatabase.getInstance(applicationContext)
-        categoryRepository = CategoryRepository(
-            appDatabase.categoryDao(),
-            remoteDataSource
-        )
+        categoryRepository = Injection.provideCategoryRepository(this)
         eventRepository = EventRepository(
             appDatabase.eventDao(),
             remoteDataSource

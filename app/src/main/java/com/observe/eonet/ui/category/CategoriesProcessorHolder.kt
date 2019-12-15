@@ -14,7 +14,9 @@ class CategoriesProcessorHolder {
     private val loadCategoryProcessorHolder =
         ObservableTransformer<LoadCategoriesAction, LoadCategoriesResult> { actions ->
             actions.flatMap {
-                EONETApplication.categoryRepository.getCategories()
+
+                val categoryRepository = EONETApplication.categoryRepository
+                categoryRepository.getCategories()
                     .subscribeOn(EONETApplication.schedulerProvider.io())
                     .observeOn(EONETApplication.schedulerProvider.ui())
                     .doOnNext { categories ->
@@ -29,7 +31,7 @@ class CategoriesProcessorHolder {
                             .distinct()
                             .subscribeOn(EONETApplication.schedulerProvider.io())
                             .flatMap({ categoryId ->
-                                EONETApplication.categoryRepository.getCategory(categoryId)
+                                categoryRepository.getCategory(categoryId)
                                     .onErrorResumeNext(Observable.empty<EOCategory>())
                             }, 5)
                             .scan(categories) { existingCategories, updatedCategory ->
@@ -42,8 +44,8 @@ class CategoriesProcessorHolder {
                             .cast(LoadCategoriesResult::class.java)
                     }
                     .startWith(LoadCategoriesResult.Loading)
-                    .onErrorReturn(LoadCategoriesResult::Failure)
                     .concatWith(Observable.just(LoadCategoriesResult.Complete))
+                    .onErrorReturn(LoadCategoriesResult::Failure)
             }
         }
 
