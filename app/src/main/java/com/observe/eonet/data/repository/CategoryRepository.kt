@@ -71,7 +71,7 @@ class CategoryRepository(
                         }
                     }
             })
-        return Observable.merge(dbObservable, apiObservable)
+        return dbObservable.concatWith(apiObservable)
     }
 
     fun getEvents(categoryId: String): Observable<List<EOEvent>> {
@@ -84,6 +84,9 @@ class CategoryRepository(
         return categoryDao.get(categoryId)
             .map { it.convertToEOCategory() }
             .toObservable()
+            .doOnNext {
+                Log.d(TAG, "Dispatching ID: ${it.id} category from DB... ")
+            }
     }
 
     private fun getCategoryFromApi(categoryId: String): Observable<EOCategory> {

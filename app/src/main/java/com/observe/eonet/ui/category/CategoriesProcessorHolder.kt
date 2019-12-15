@@ -29,9 +29,9 @@ class CategoriesProcessorHolder {
                         categories.toObservable()
                             .map { category -> category.id }
                             .distinct()
-                            .subscribeOn(EONETApplication.schedulerProvider.io())
                             .flatMap({ categoryId ->
                                 categoryRepository.getCategory(categoryId)
+                                    .subscribeOn(EONETApplication.schedulerProvider.io())
                                     .onErrorResumeNext(Observable.empty<EOCategory>())
                             }, 5)
                             .scan(categories) { existingCategories, updatedCategory ->
