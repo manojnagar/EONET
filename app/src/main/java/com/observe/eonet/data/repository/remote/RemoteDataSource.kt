@@ -55,6 +55,12 @@ class RemoteDataSource : DataSource {
         //Merge both the events and return
         return Observables.zip(openEvents, closedEvents) { openEvents, closeEvents ->
             openEvents + closeEvents
+        }.map { events ->
+            events.map { event ->
+                event.copy(categories = event.categories.map { eoCategory ->
+                    eoCategory.copy(link = "")
+                })
+            }
         }
     }
 
