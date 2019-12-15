@@ -18,26 +18,22 @@ class CategoryRepository(
         Log.d(TAG, "Request received for getCategories")
         val dbObservable = getCategoriesFromDb()
         val apiObservable = getCategoriesFromApi()
+            .onErrorResumeNext(Function { error ->
+                dbObservable.isEmpty
+                    .toObservable()
+                    .flatMap { empty: Boolean ->
+                        if (empty) {
+                            Observable.error(error)
+                        } else {
+                            Observable.empty<List<EOCategory>>()
+                        }
+                    }
+            })
+
         return Observable.concatArray(
             dbObservable,
             apiObservable
-                .onErrorResumeNext(Function { error ->
-                    dbObservable.isEmpty
-                        .toObservable()
-                        .flatMap { empty: Boolean ->
-                            if (empty) {
-                                Observable.error(error)
-                            } else {
-                                Observable.empty<List<EOCategory>>()
-                            }
-                        }
-                })
         )
-    }
-
-    fun getEvents(categoryId: String): Observable<List<EOEvent>> {
-        Log.d(TAG, "Request received for getEvents : $categoryId")
-        return getCategory(categoryId).map { it.events }
     }
 
     private fun getCategoriesFromDb(): Observable<List<EOCategory>> {
@@ -62,10 +58,25 @@ class CategoryRepository(
 
     fun getCategory(categoryId: String): Observable<EOCategory> {
         Log.d(TAG, "Request received for getCategory : $categoryId")
-        return Observable.merge(
-            getCategoryFromDB(categoryId),
-            getCategoryFromApi(categoryId)
-        )
+        val dbObservable = getCategoryFromDB(categoryId)
+        val apiObservable = getCategoryFromApi(categoryId)
+            .onErrorResumeNext(Function { error ->
+                dbObservable.isEmpty
+                    .toObservable()
+                    .flatMap { empty: Boolean ->
+                        if (empty) {
+                            Observable.error(error)
+                        } else {
+                            Observable.empty<EOCategory>()
+                        }
+                    }
+            })
+        return Observable.merge(dbObservable, apiObservable)
+    }
+
+    fun getEvents(categoryId: String): Observable<List<EOEvent>> {
+        Log.d(TAG, "Request received for getEvents : $categoryId")
+        return getCategory(categoryId).map { it.events }
     }
 
     private fun getCategoryFromDB(categoryId: String): Observable<EOCategory> {

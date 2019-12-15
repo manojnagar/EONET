@@ -12,7 +12,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import retrofit2.HttpException
@@ -62,16 +61,13 @@ class CategoryRepositoryTest {
                 }
             )
         latch.await()
-
-        runBlocking { delay(1000) }
     }
 
 
     @Test
-    @Ignore("Testing categories")
     fun fetchCategory() {
         val latch = CountDownLatch(1)
-        repository.getCategory("6555")
+        repository.getCategory("6")
             .subscribeBy(
                 onNext = {
                     println("Output: $it")
