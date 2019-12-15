@@ -25,12 +25,13 @@ class EventRepository(
         val apiObservable = getEventsFromApi()
             .onErrorResumeNext(Function { error ->
                 if (dbReturnAnItem) {
-                    Observable.error(error)
-                } else {
                     Observable.empty<List<EOEvent>>()
+                } else {
+                    Observable.error(error)
                 }
             })
         return dbObservable.concatWith(apiObservable)
+            .filter { it.isNotEmpty() }
     }
 
     private fun getEventsFromDb(): Observable<List<EOEvent>> {

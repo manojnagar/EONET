@@ -20,6 +20,7 @@ import com.observe.eonet.ui.events.EventsIntent.LoadEventsIntent
 import com.observe.eonet.util.RecyclerViewItemDecoration
 import com.observe.eonet.util.makeInVisible
 import com.observe.eonet.util.makeVisible
+import com.observe.eonet.util.visible
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.fragment_events.*
@@ -123,6 +124,8 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
             is EventsViewState.DataView -> {
                 makeInVisible(loadingView, emptyView, errorView)
                 dataView.makeVisible()
+
+                loadingResultProgressBar.visible = state.isLoadingInProgress
                 adapter.appendEvents(state.events)
 
                 state.toastMessage?.let {

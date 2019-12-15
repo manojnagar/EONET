@@ -12,7 +12,11 @@ sealed class EventsViewState : MviViewState {
 
     data class ErrorView(val message: String) : EventsViewState()
 
-    data class DataView(val events: List<EOEvent>, val toastMessage: String?) : EventsViewState()
+    data class DataView(
+        val isLoadingInProgress: Boolean,
+        val events: List<EOEvent>,
+        val toastMessage: String?
+    ) : EventsViewState()
 
     companion object {
         fun idle(): EventsViewState = LoadingView

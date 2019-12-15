@@ -25,12 +25,14 @@ class EventsProcessorHolder {
         ObservableTransformer<LoadEventsAction, LoadEventsResult> { actions ->
             actions.flatMap { action ->
                 getEvents(action.categoryId)
-                    .map { events -> LoadEventsResult.Success(events) }
-                    .cast(LoadEventsResult::class.java)
                     .subscribeOn(EONETApplication.schedulerProvider.io())
                     .observeOn(EONETApplication.schedulerProvider.ui())
+                    .map { events -> LoadEventsResult.Update(events) }
+                    .cast(LoadEventsResult::class.java)
                     .startWith(LoadEventsResult.Loading)
+                    .concatWith(Observable.just(LoadEventsResult.Complete))
                     .onErrorReturn(LoadEventsResult::Failure)
+
             }
         }
 

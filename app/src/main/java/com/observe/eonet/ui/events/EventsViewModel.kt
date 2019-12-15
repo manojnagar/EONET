@@ -78,7 +78,8 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
                         is LoadEventsResult.Loading -> {
                             EventsViewState.LoadingView
                         }
-                        is LoadEventsResult.Success -> {
+
+                        is LoadEventsResult.Update -> {
                             val events = mutableListOf<EOEvent>()
                             if (previousState is EventsViewState.DataView) {
                                 events.addAll(previousState.events)
@@ -86,12 +87,29 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
                             events.addAll(result.events)
 
                             //Return result state
-                            if (events.isEmpty()) {
-                                EventsViewState.EmptyView
+                            if (previousState is EventsViewState.DataView) {
+                                previousState.copy(events = events)
                             } else {
-                                EventsViewState.DataView(events = events, toastMessage = null)
+                                EventsViewState.DataView(
+                                    isLoadingInProgress = true,
+                                    events = events,
+                                    toastMessage = null
+                                )
                             }
                         }
+
+                        is LoadEventsResult.Complete -> {
+                            if (previousState is EventsViewState.DataView) {
+                                if (previousState.events.isEmpty()) {
+                                    EventsViewState.EmptyView
+                                } else {
+                                    previousState.copy(isLoadingInProgress = false)
+                                }
+                            } else {
+                                EventsViewState.EmptyView
+                            }
+                        }
+
                         is LoadEventsResult.Failure -> {
                             EventsViewState.ErrorView(result.error.localizedMessage ?: "")
                         }
