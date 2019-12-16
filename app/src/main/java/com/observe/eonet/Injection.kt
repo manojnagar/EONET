@@ -1,6 +1,7 @@
 package com.observe.eonet
 
 import android.content.Context
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.observe.eonet.data.repository.CategoryRepository
 import com.observe.eonet.data.repository.EventRepository
 import com.observe.eonet.data.repository.local.AppDatabase
@@ -26,5 +27,9 @@ object Injection {
     fun provideEventRepository(context: Context): EventRepository {
         val db = AppDatabase.getInstance(context)
         return EventRepository(db.eventDao(), provideEventApi())
+    }
+
+    fun provideFirebaseAnalytics(context: Context): FirebaseAnalytics {
+        return FirebaseAnalytics.getInstance(context)
     }
 }

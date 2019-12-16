@@ -3,6 +3,7 @@ package com.observe.eonet.app
 import android.util.Log
 import androidx.multidex.MultiDexApplication
 import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.iid.FirebaseInstanceId
 import com.observe.eonet.Injection
 import com.observe.eonet.data.repository.CategoryRepository
@@ -23,6 +24,7 @@ class EONETApplication : MultiDexApplication() {
         lateinit var appDatabase: AppDatabase
         lateinit var categoryRepository: CategoryRepository
         lateinit var eventRepository: EventRepository
+        lateinit var firebaseAnalytics: FirebaseAnalytics
         private val remoteDataSource: DataSource by lazy {
             RemoteDataSource()
         }
@@ -35,6 +37,7 @@ class EONETApplication : MultiDexApplication() {
         appDatabase = AppDatabase.getInstance(applicationContext)
         categoryRepository = Injection.provideCategoryRepository(this)
         eventRepository = Injection.provideEventRepository(this)
+        firebaseAnalytics = Injection.provideFirebaseAnalytics(this)
         registerFCMToken()
     }
 

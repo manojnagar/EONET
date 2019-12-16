@@ -1,5 +1,6 @@
 package com.observe.eonet.ui.source
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.net.http.SslError
 import android.os.Bundle
@@ -13,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.navArgs
 import com.observe.eonet.R
+import com.observe.eonet.firebase.AnalyticsManager
 import com.observe.eonet.util.visible
 import kotlinx.android.synthetic.main.web_content_fragment.*
 
@@ -21,6 +23,11 @@ class WebContentFragment : Fragment() {
     private lateinit var viewModel: WebContentViewModel
     private val args: WebContentFragmentArgs by navArgs()
 
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        AnalyticsManager.reportScreenViewEvent("source")
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

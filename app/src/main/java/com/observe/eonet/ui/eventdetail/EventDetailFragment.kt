@@ -1,5 +1,6 @@
 package com.observe.eonet.ui.eventdetail
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -25,6 +26,7 @@ import com.observe.eonet.data.model.EOBaseGeometry
 import com.observe.eonet.data.model.EOBaseGeometry.EOPointGeometry
 import com.observe.eonet.data.model.EOBaseGeometry.EOPolygonGeometry
 import com.observe.eonet.data.model.EOSource
+import com.observe.eonet.firebase.AnalyticsManager
 import com.observe.eonet.mvibase.MviView
 import com.observe.eonet.ui.eventdetail.EventDetailIntent.LoadEventDetailIntent
 import com.observe.eonet.ui.eventdetail.EventDetailIntent.MapReadyIntent
@@ -46,6 +48,11 @@ class EventDetailFragment : Fragment(),
 
     private val mapReadyIntentPublisher =
         PublishSubject.create<MapReadyIntent>()
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        AnalyticsManager.reportScreenViewEvent("event")
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

@@ -1,5 +1,6 @@
 package com.observe.eonet.ui.category
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -14,6 +15,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.observe.eonet.R
 import com.observe.eonet.data.model.EOCategory
+import com.observe.eonet.firebase.AnalyticsManager
 import com.observe.eonet.mvibase.MviView
 import com.observe.eonet.ui.category.CategoriesIntent.LoadCategoriesIntent
 import com.observe.eonet.ui.category.CategoriesIntent.RetryLoadCategoriesIntent
@@ -34,6 +36,11 @@ class CategoryFragment : Fragment(), CategoryAdapter.AdapterCallback,
     private lateinit var categoryViewModel: CategoryViewModel
     private var retryLoadIntentPublisher =
         PublishSubject.create<RetryLoadCategoriesIntent>()
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        AnalyticsManager.reportScreenViewEvent("categories")
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,

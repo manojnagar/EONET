@@ -1,5 +1,6 @@
 package com.observe.eonet.ui.events
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,6 +16,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.observe.eonet.R
 import com.observe.eonet.data.model.EOEvent
+import com.observe.eonet.firebase.AnalyticsManager
 import com.observe.eonet.mvibase.MviView
 import com.observe.eonet.ui.events.EventsIntent.LoadEventsIntent
 import com.observe.eonet.util.RecyclerViewItemDecoration
@@ -46,6 +48,15 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
             ViewModelProviders.of(this).get(EventsViewModel::class.java)
         adapter = EventsAdapter(mutableListOf(), this)
         return inflater.inflate(R.layout.fragment_events, container, false)
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+
+        AnalyticsManager.reportScreenViewEvent(
+            "events",
+            mapOf("category" to (args.categoryId ?: ""))
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
