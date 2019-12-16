@@ -14,7 +14,18 @@ class EventRepository(
     private val eventApi: EventApi
 ) {
     fun getEvent(eventId: String): Observable<EOEvent> {
-        return getEventFromApi(eventId)
+        var dbReturnAnItem = false
+        val dbObservable = getEventFromDb(eventId)
+            .doOnNext { dbReturnAnItem = true }
+        val apiObservable = getEventFromApi(eventId)
+            .onErrorResumeNext(Function { error ->
+                if (dbReturnAnItem) {
+                    Observable.empty<EOEvent>()
+                } else {
+                    Observable.error(error)
+                }
+            })
+        return dbObservable.concatWith(apiObservable)
     }
 
     fun getEvents(): Observable<List<EOEvent>> {

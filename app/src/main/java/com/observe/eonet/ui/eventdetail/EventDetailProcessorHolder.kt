@@ -9,12 +9,11 @@ import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 
 class EventDetailProcessorHolder {
-
-
+    
     private val loadEventDetailProcessor =
         ObservableTransformer<LoadEventDetailAction, LoadEventDetailResult> { actions ->
             actions.flatMap { action ->
-                EONETApplication.dataSource.fetchEvent(action.eventId)
+                EONETApplication.eventRepository.getEvent(action.eventId)
                     .map { event -> LoadEventDetailResult.Success(event) }
                     .cast(LoadEventDetailResult::class.java)
                     .onErrorReturn(LoadEventDetailResult::Failure)
