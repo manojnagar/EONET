@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -59,7 +60,15 @@ class EventDetailFragment : Fragment(),
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
+        setHasOptionsMenu(true)
         AnalyticsManager.reportScreenViewEvent("event")
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        activity?.invalidateOptionsMenu()
+        menu.findItem(R.id.sort_by).isVisible = false
+        menu.findItem(R.id.filter_by).isVisible = false
+        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onCreateView(
