@@ -40,14 +40,6 @@ class MainActivity : AppCompatActivity() {
                 onBackPressed()
                 true
             }
-            R.id.sort_by -> {
-                print("Open sort logic screen")
-                true
-            }
-            R.id.filter_by -> {
-                print("Open filter logic screen")
-                true
-            }
             else -> super.onOptionsItemSelected(item)
         }
     }

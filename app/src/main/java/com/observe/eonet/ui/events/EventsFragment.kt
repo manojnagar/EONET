@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -52,9 +53,21 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
         return inflater.inflate(R.layout.fragment_events, container, false)
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.filter_by -> {
+                val direction =
+                    EventsFragmentDirections.actionNavigationEventsToFilterFragment()
+                findNavController().navigate(direction)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
-
+        setHasOptionsMenu(true)
         AnalyticsManager.reportScreenViewEvent(
             "events",
             mapOf("category" to (args.categoryId ?: ""))

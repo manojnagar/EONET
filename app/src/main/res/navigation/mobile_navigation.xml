@@ -13,6 +13,10 @@
         <action
             android:id="@+id/action_navigation_category_to_navigation_events"
             app:destination="@id/navigation_events" />
+
+        <action
+            android:id="@+id/action_navigation_category_to_filterFragment"
+            app:destination="@id/filterFragment" />
     </fragment>
 
     <fragment
@@ -28,6 +32,9 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
+        <action
+            android:id="@+id/action_navigation_events_to_filterFragment"
+            app:destination="@id/filterFragment" />
     </fragment>
 
     <fragment
@@ -51,4 +58,10 @@
             android:name="contentUrl"
             app:argType="string" />
     </fragment>
+
+    <fragment
+        android:id="@+id/filterFragment"
+        android:name="com.observe.eonet.ui.filter.FilterFragment"
+        android:label="@string/title_filter"
+        tools:layout="@layout/filter_fragment" />
 </navigation>

@@ -22,4 +22,5 @@
     <string name="empty_category_title">No category found</string>
     <string name="empty_event_title">No event found</string>
     <string name="empty_view_description">Go back and change the filter</string>
+    <string name="title_filter">Filter Results</string>
 </resources>
