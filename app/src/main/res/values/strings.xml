@@ -16,4 +16,7 @@
     <string name="location">Location</string>
     <string name="retry">Retry</string>
     <string name="something_went_wrong_please_try_again">Something went wrong, please try again</string>
+    <string name="offline_error_message">Your network is unavailable.\nCheck your data or wifi connection</string>
+    <string name="data_load_error_message">There was an error loading your data.\nPlease try again later</string>
+    <string name="ooops">Ooops!</string>
 </resources>
