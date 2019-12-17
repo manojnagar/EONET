@@ -9,17 +9,21 @@ import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 
 class EventDetailProcessorHolder {
-    
+
     private val loadEventDetailProcessor =
         ObservableTransformer<LoadEventDetailAction, LoadEventDetailResult> { actions ->
             actions.flatMap { action ->
                 EONETApplication.eventRepository.getEvent(action.eventId)
-                    .map { event -> LoadEventDetailResult.Success(event) }
-                    .cast(LoadEventDetailResult::class.java)
-                    .onErrorReturn(LoadEventDetailResult::Failure)
                     .subscribeOn(EONETApplication.schedulerProvider.io())
                     .observeOn(EONETApplication.schedulerProvider.ui())
+                    .doOnNext {
+                        println("manoj event info : $it")
+                    }
+                    .map { event -> LoadEventDetailResult.Success(event) }
+                    .cast(LoadEventDetailResult::class.java)
                     .startWith(LoadEventDetailResult.Loading)
+                    .concatWith(Observable.just(LoadEventDetailResult.Complete))
+                    .onErrorReturn(LoadEventDetailResult::Failure)
             }
         }
 

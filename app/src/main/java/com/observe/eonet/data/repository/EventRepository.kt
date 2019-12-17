@@ -1,7 +1,9 @@
 package com.observe.eonet.data.repository
 
 import android.util.Log
+import com.observe.eonet.data.model.EOCategory
 import com.observe.eonet.data.model.EOEvent
+import com.observe.eonet.data.model.updateNonNullFields
 import com.observe.eonet.data.repository.local.EventDao
 import com.observe.eonet.data.repository.local.model.DBCategoryEventCrossRef
 import com.observe.eonet.data.repository.remote.EventApi
@@ -13,19 +15,9 @@ class EventRepository(
     private val eventDao: EventDao,
     private val eventApi: EventApi
 ) {
+
     fun getEvent(eventId: String): Observable<EOEvent> {
-        var dbReturnAnItem = false
-        val dbObservable = getEventFromDb(eventId)
-            .doOnNext { dbReturnAnItem = true }
-        val apiObservable = getEventFromApi(eventId)
-            .onErrorResumeNext(Function { error ->
-                if (dbReturnAnItem) {
-                    Observable.empty<EOEvent>()
-                } else {
-                    Observable.error(error)
-                }
-            })
-        return dbObservable.concatWith(apiObservable)
+        return getEventFromApi(eventId)
     }
 
     fun getEvents(): Observable<List<EOEvent>> {
@@ -62,16 +54,22 @@ class EventRepository(
 
     private fun getEventFromDb(eventId: String): Observable<EOEvent> {
         return Observables.zip(
-            Observable.fromCallable { eventDao.getEventWithSources(eventId).convertToEOEvent() },
-            Observable.fromCallable { eventDao.getEventWithCategories(eventId).convertToEOEvent() }
-        ) { withSources, withCategories ->
+            eventDao.getEventWithSources(eventId)
+                .toObservable()
+                .map { it.convertToEOEvent() },
+            eventDao.getEventWithCategories(eventId)
+                .toObservable()
+                .map { it.convertToEOEvent() })
+        { withSources, withCategories ->
             withSources.copy(categories = withCategories.categories)
         }
     }
 
     private fun getEventFromApi(eventId: String): Observable<EOEvent> {
         return eventApi.fetchEvent(eventId)
+            .map { it.copy(categories = it.categories.map(EOCategory::updateNonNullFields)) }
             .doOnNext {
+                println("manoj event from server $it")
                 Log.d(TAG, "Dispatching ${it.id} event from API...")
                 storeEventsInDb(listOf(it))
             }

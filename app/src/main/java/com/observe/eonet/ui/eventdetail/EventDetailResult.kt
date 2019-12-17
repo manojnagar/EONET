@@ -6,9 +6,14 @@ import com.observe.eonet.mvibase.MviResult
 sealed class EventDetailResult : MviResult {
 
     sealed class LoadEventDetailResult : EventDetailResult() {
+
         object Loading : LoadEventDetailResult()
+
         data class Success(val event: EOEvent) : LoadEventDetailResult()
+
         data class Failure(val error: Throwable) : LoadEventDetailResult()
+
+        object Complete : LoadEventDetailResult()
     }
 
     object MapReadyResult : EventDetailResult()

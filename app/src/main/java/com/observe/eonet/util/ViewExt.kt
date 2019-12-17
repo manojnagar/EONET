@@ -21,3 +21,9 @@ fun makeInVisible(vararg views: View) {
     view.makeInVisible()
   }
 }
+
+fun makeVisible(vararg views: View) {
+  for (view in views) {
+    view.makeVisible()
+  }
+}

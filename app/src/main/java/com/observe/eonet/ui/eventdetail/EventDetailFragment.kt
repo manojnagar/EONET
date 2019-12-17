@@ -28,11 +28,11 @@ import com.observe.eonet.data.model.EOBaseGeometry.EOPolygonGeometry
 import com.observe.eonet.data.model.EOSource
 import com.observe.eonet.firebase.AnalyticsManager
 import com.observe.eonet.mvibase.MviView
-import com.observe.eonet.ui.eventdetail.EventDetailIntent.LoadEventDetailIntent
-import com.observe.eonet.ui.eventdetail.EventDetailIntent.MapReadyIntent
+import com.observe.eonet.ui.eventdetail.EventDetailIntent.*
 import com.observe.eonet.util.RecyclerViewItemDecoration
 import com.observe.eonet.util.formatedDateTime
-import com.observe.eonet.util.visible
+import com.observe.eonet.util.makeInVisible
+import com.observe.eonet.util.makeVisible
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.event_detail_fragment.*
@@ -41,6 +41,10 @@ class EventDetailFragment : Fragment(),
     MviView<EventDetailIntent, EventDetailViewState>,
     SourceAdapter.AdapterCallback, OnMapReadyCallback {
 
+    companion object {
+        private const val TAG = "EventDetailFragment"
+    }
+
     private val args: EventDetailFragmentArgs by navArgs()
     private lateinit var viewModel: EventDetailViewModel
     private var readyMap: GoogleMap? = null
@@ -48,6 +52,8 @@ class EventDetailFragment : Fragment(),
 
     private val mapReadyIntentPublisher =
         PublishSubject.create<MapReadyIntent>()
+    private val retryLoadEventIntentPublisher =
+        PublishSubject.create<RetryLoadEventIntent>()
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -67,6 +73,10 @@ class EventDetailFragment : Fragment(),
         googleMapView.getMapAsync(this)
         googleMapView.onCreate(arguments)
         setupRecyclerView()
+
+        retryButton.setOnClickListener {
+            retryLoadEventIntentPublisher.onNext(RetryLoadEventIntent(args.eventId))
+        }
     }
 
     private fun setupRecyclerView() {
@@ -112,70 +122,81 @@ class EventDetailFragment : Fragment(),
         return mapReadyIntentPublisher
     }
 
+    private fun retryLoadEventIntent(): Observable<RetryLoadEventIntent> {
+        return retryLoadEventIntentPublisher
+    }
+
     override fun intents(): Observable<EventDetailIntent> {
         return Observable.merge(
             Observable.just(LoadEventDetailIntent(args.eventId)),
-            mapReadyIntent()
+            mapReadyIntent(),
+            retryLoadEventIntent()
         )
     }
 
     override fun render(state: EventDetailViewState) {
-        progressBar.visible = state.isLoading
-
-        if (state.event == null) {
-            emptyState.visible = !state.isLoading
-            title.visible = false
-            category.visible = false
-            sourceTitle.visible = false
-            sourceRecyclerView.visible = false
-            googleMapView.visible = false
-            locationTitle.visible = false
-            descriptionTitle.visible = false
-            description.visible = false
-        } else {
-            emptyState.visible = false
-            title.visible = true
-            title.text = state.event.title
-
-            if (state.event.categories.isNotEmpty()) {
-                category.visible = true
-                var categoryData = state.event.categories.joinToString(" #") { it.title }
-                categoryData = "#$categoryData"
-                category.text = categoryData
-
+        when (state) {
+            is EventDetailViewState.LoadingView -> {
+                makeInVisible(eventNotExistView, errorView, dataView)
+                loadingView.makeVisible()
             }
-
-            //Setup source recycler view
-            if (state.event.sources.isNotEmpty()) {
-                sourceTitle.visible = true
-                sourceRecyclerView.visible = true
-                adapter.updateSourceList(state.event.sources)
+            is EventDetailViewState.EventNotExistView -> {
+                makeInVisible(loadingView, errorView, dataView)
+                eventNotExistView.makeVisible()
             }
+            is EventDetailViewState.ErrorView -> {
+                makeInVisible(loadingView, eventNotExistView, dataView)
+                errorView.makeVisible()
 
-            //Description
-            if (state.event.description.isNotEmpty()) {
-                descriptionTitle.visible = true
-                description.visible = true
-                description.text = state.event.description
+                Toast.makeText(
+                    context,
+                    getString(R.string.error_loading_events),
+                    Toast.LENGTH_SHORT
+                ).show()
+                Log.e(TAG, "Error loading event detail: ${state.message}")
             }
+            is EventDetailViewState.DataView -> {
+                makeInVisible(loadingView, eventNotExistView, errorView)
+                dataView.makeVisible()
 
-            //Map view
-            if (state.event.geometries.isNotEmpty()) {
-                googleMapView.visible = true
-                locationTitle.visible = true
-                updateGeometryOnMap(state.event.geometries)
+                //Update title
+                title.text = state.event.title
+
+                if (state.event.categories.isNotEmpty()) {
+                    category.makeVisible()
+                    var categoryData = state.event.categories.joinToString(" #") { it.title }
+                    categoryData = "#$categoryData"
+                    category.text = categoryData
+
+                } else {
+                    category.makeInVisible()
+                }
+
+                //Setup source recycler view
+                if (state.event.sources.isNotEmpty()) {
+                    makeVisible(sourceTitle, sourceRecyclerView)
+                    adapter.updateSourceList(state.event.sources)
+                } else {
+                    makeInVisible(sourceTitle, sourceRecyclerView)
+                }
+
+                //Description
+                if (state.event.description.isNotEmpty()) {
+                    makeVisible(descriptionTitle, description)
+                    description.text = state.event.description
+                } else {
+                    makeInVisible(descriptionTitle, description)
+                }
+
+                //Map view
+                if (state.event.geometries.isNotEmpty()) {
+                    makeVisible(googleMapView, locationTitle)
+                    updateGeometryOnMap(state.event.geometries)
+                } else {
+                    makeInVisible(googleMapView, locationTitle)
+                }
             }
         }
-
-        if (state.error != null) {
-            Toast.makeText(context, getString(R.string.error_loading_events), Toast.LENGTH_SHORT)
-                .show()
-            Log.e(TAG, "Error loading event detail: ${state.error.localizedMessage}")
-        }
-    }
-
-    companion object {
-        private const val TAG = "EventDetailFragment"
     }
 
     override fun onSourceSelected(source: EOSource) {
@@ -205,8 +226,6 @@ class EventDetailFragment : Fragment(),
                 true // Marker click is handled
             }
         }
-
-
     }
 
     private fun updateGeometryOnMap(geometry: List<EOBaseGeometry>) {

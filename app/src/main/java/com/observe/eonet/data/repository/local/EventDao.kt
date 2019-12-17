@@ -2,6 +2,7 @@ package com.observe.eonet.data.repository.local
 
 import androidx.room.*
 import com.observe.eonet.data.repository.local.model.*
+import io.reactivex.Maybe
 
 @Dao
 interface EventDao {
@@ -40,9 +41,9 @@ interface EventDao {
 
     @Transaction
     @Query("SELECT * FROM event where event_id = :eventId")
-    fun getEventWithSources(eventId: String): DBEventWithSources
+    fun getEventWithSources(eventId: String): Maybe<DBEventWithSources>
 
     @Transaction
     @Query("SELECT * FROM event where event_id = :eventId")
-    fun getEventWithCategories(eventId: String): DBEventWithCategories
+    fun getEventWithCategories(eventId: String): Maybe<DBEventWithCategories>
 }

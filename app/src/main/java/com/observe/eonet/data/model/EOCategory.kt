@@ -7,6 +7,11 @@ data class EOCategory(
     val events: MutableList<EOEvent>?
 )
 
+fun EOCategory.updateNonNullFields(): EOCategory {
+    //In network requests some fields are missing
+    return this.copy(title = this.title ?: "", link = this.link ?: "")
+}
+
 fun EOCategory.mergeEvents(category: EOCategory): EOCategory {
     //Check validity
     if (this.id != (category.id)) {

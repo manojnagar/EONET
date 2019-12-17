@@ -5,8 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.observe.eonet.mvibase.MviViewModel
 import com.observe.eonet.ui.eventdetail.EventDetailAction.LoadEventDetailAction
-import com.observe.eonet.ui.eventdetail.EventDetailIntent.LoadEventDetailIntent
-import com.observe.eonet.ui.eventdetail.EventDetailIntent.MapReadyIntent
+import com.observe.eonet.ui.eventdetail.EventDetailIntent.*
 import com.observe.eonet.ui.eventdetail.EventDetailResult.LoadEventDetailResult
 import com.observe.eonet.ui.eventdetail.EventDetailResult.MapReadyResult
 import com.observe.eonet.util.notOfType
@@ -57,14 +56,14 @@ class EventDetailViewModel : ViewModel(),
                 Observable.merge(
                     shared.ofType(MapReadyIntent::class.java)
                         .map(this::mapReadyIntentProcessor),
-                    shared.ofType(LoadEventDetailIntent::class.java)
+                    Observable.merge(
+                        shared.ofType(LoadEventDetailIntent::class.java),
+                        shared.ofType(RetryLoadEventIntent::class.java)
+                    )
                         .compose(intentFilter)
                         .map(this::actionFromIntent)
                         .compose(EventDetailProcessorHolder().actionProcessor)
                         .scan(EventDetailViewState.idle(), reducer)
-                        .distinctUntilChanged { old, new ->
-                            old == new
-                        }
                 )
             }
             .replay(1)
@@ -81,6 +80,7 @@ class EventDetailViewModel : ViewModel(),
         return when (intent) {
             is LoadEventDetailIntent -> LoadEventDetailAction(intent.eventId)
             is MapReadyIntent -> EventDetailAction.MapReadyAction
+            is RetryLoadEventIntent -> LoadEventDetailAction(intent.eventId)
         }
     }
 
@@ -92,15 +92,17 @@ class EventDetailViewModel : ViewModel(),
                     is LoadEventDetailResult ->
                         when (result) {
                             is LoadEventDetailResult.Loading ->
-                                previousState.copy(isLoading = true)
+                                EventDetailViewState.LoadingView
                             is LoadEventDetailResult.Success ->
-                                previousState.copy(isLoading = false, event = result.event)
+                                EventDetailViewState.DataView(result.event)
                             is LoadEventDetailResult.Failure ->
-                                previousState.copy(
-                                    isLoading = false,
-                                    event = null,
-                                    error = result.error
-                                )
+                                EventDetailViewState.ErrorView(result.error.localizedMessage ?: "")
+                            is LoadEventDetailResult.Complete ->
+                                if (previousState is EventDetailViewState.DataView) {
+                                    previousState
+                                } else {
+                                    EventDetailViewState.EventNotExistView
+                                }
                         }
 
                     is MapReadyResult ->

@@ -3,19 +3,17 @@ package com.observe.eonet.ui.eventdetail
 import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.mvibase.MviViewState
 
-data class EventDetailViewState(
-    val isLoading: Boolean,
-    val event: EOEvent?,
-    val error: Throwable?
-) : MviViewState {
+sealed class EventDetailViewState : MviViewState {
+
+    object LoadingView : EventDetailViewState()
+
+    object EventNotExistView : EventDetailViewState()
+
+    data class ErrorView(val message: String) : EventDetailViewState()
+
+    data class DataView(val event: EOEvent) : EventDetailViewState()
 
     companion object {
-        fun idle(): EventDetailViewState {
-            return EventDetailViewState(
-                isLoading = true,
-                event = null,
-                error = null
-            )
-        }
+        fun idle(): EventDetailViewState = LoadingView
     }
 }

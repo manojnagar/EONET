@@ -13,4 +13,7 @@
     <string name="sources">Sources</string>
     <string name="description">Description</string>
     <string name="default_notification_channel_id">general</string>
+    <string name="location">Location</string>
+    <string name="retry">Retry</string>
+    <string name="something_went_wrong_please_try_again">Something went wrong, please try again</string>
 </resources>
