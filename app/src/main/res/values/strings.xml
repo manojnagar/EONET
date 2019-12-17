@@ -19,4 +19,7 @@
     <string name="offline_error_message">Your network is unavailable.\nCheck your data or wifi connection</string>
     <string name="data_load_error_message">There was an error loading your data.\nPlease try again later</string>
     <string name="ooops">Ooops!</string>
+    <string name="empty_category_title">No category found</string>
+    <string name="empty_event_title">No event found</string>
+    <string name="empty_view_description">Go back and change the filter</string>
 </resources>
