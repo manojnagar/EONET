@@ -26,7 +26,10 @@ import com.observe.eonet.util.visible
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
+import kotlinx.android.synthetic.main.empty_layout.*
+import kotlinx.android.synthetic.main.error_layout.*
 import kotlinx.android.synthetic.main.fragment_category.*
+import kotlinx.android.synthetic.main.loading_layout.*
 
 class CategoryFragment : Fragment(), CategoryAdapter.AdapterCallback,
     MviView<CategoriesIntent, CategoriesViewState> {
@@ -118,12 +121,11 @@ class CategoryFragment : Fragment(), CategoryAdapter.AdapterCallback,
             is CategoriesViewState.EmptyView -> {
                 makeInVisible(loadingView, errorView, dataView)
                 emptyView.makeVisible()
+                emptyViewTitle.setText(R.string.no_category_found)
             }
             is CategoriesViewState.ErrorView -> {
                 makeInVisible(loadingView, emptyView, dataView)
                 errorView.makeVisible()
-
-                errorMessageView.text = state.message
             }
             is CategoriesViewState.DataView -> {
                 makeInVisible(loadingView, emptyView, errorView)

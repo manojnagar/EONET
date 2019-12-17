@@ -35,7 +35,9 @@ import com.observe.eonet.util.makeInVisible
 import com.observe.eonet.util.makeVisible
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
+import kotlinx.android.synthetic.main.error_layout.*
 import kotlinx.android.synthetic.main.event_detail_fragment.*
+import kotlinx.android.synthetic.main.loading_layout.*
 
 class EventDetailFragment : Fragment(),
     MviView<EventDetailIntent, EventDetailViewState>,

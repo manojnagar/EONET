@@ -25,8 +25,10 @@ import com.observe.eonet.util.makeVisible
 import com.observe.eonet.util.visible
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
+import kotlinx.android.synthetic.main.empty_layout.*
+import kotlinx.android.synthetic.main.error_layout.*
 import kotlinx.android.synthetic.main.fragment_events.*
-import kotlinx.android.synthetic.main.fragment_events.view.*
+import kotlinx.android.synthetic.main.loading_layout.*
 
 class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
     EventsAdapter.AdapterCallback {
@@ -126,11 +128,11 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
             is EventsViewState.ErrorView -> {
                 makeInVisible(loadingView, emptyView, dataView)
                 errorView.makeVisible()
-                errorView.errorMessageView.text = state.message
             }
             is EventsViewState.EmptyView -> {
                 makeInVisible(loadingView, errorView, dataView)
                 emptyView.makeVisible()
+                emptyViewTitle.setText(R.string.no_event_found)
             }
             is EventsViewState.DataView -> {
                 makeInVisible(loadingView, emptyView, errorView)

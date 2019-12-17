@@ -4,7 +4,7 @@
     <string name="title_events">Events</string>
     <string name="title_category">Category</string>
     <string name="title_notifications">Notifications</string>
-    <string name="no_events_found">No events found.</string>
+    <string name="no_event_found">No event found.</string>
     <string name="error_loading_events">Error loading events.</string>
     <string name="title_event_detail">Event Info</string>
     <string name="no_category_found">No category found</string>
