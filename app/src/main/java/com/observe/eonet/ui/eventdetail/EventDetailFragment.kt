@@ -31,7 +31,7 @@ import com.observe.eonet.firebase.AnalyticsManager
 import com.observe.eonet.mvibase.MviView
 import com.observe.eonet.ui.eventdetail.EventDetailIntent.*
 import com.observe.eonet.util.RecyclerViewItemDecoration
-import com.observe.eonet.util.formatedDateTime
+import com.observe.eonet.util.formattedDateTime
 import com.observe.eonet.util.makeInVisible
 import com.observe.eonet.util.makeVisible
 import io.reactivex.Observable
@@ -290,7 +290,7 @@ class EventDetailFragment : Fragment(),
                  */
                 LatLng(geometry.coordinates[1], geometry.coordinates[0])
             )
-            .title(geometry.date.formatedDateTime())
+            .title(geometry.date.formattedDateTime())
     }
 
     private fun convertToPolygon(geometry: EOPolygonGeometry): List<PolygonOptions> {

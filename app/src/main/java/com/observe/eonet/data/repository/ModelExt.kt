@@ -4,9 +4,14 @@ import com.observe.eonet.data.model.EOCategory
 import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.data.model.EOSource
 import com.observe.eonet.data.repository.local.model.*
+import com.observe.eonet.util.convertToDate
+import com.observe.eonet.util.convertToString
 
 fun EOEvent.convertToDBEvent(): DBEvent {
-    return DBEvent(this.id, this.title, this.description)
+    return DBEvent(
+        this.id, this.title, this.description,
+        this.isClosed, this.startDate?.convertToString()
+    )
 }
 
 fun EOCategory.convertToDBCategory(): DBCategory {
@@ -42,7 +47,9 @@ fun DBEvent.convertToEOEvent(): EOEvent {
         description = this.description ?: "",
         categories = emptyList(),
         sources = emptyList(),
-        geometries = emptyList()
+        geometries = emptyList(),
+        isClosed = this.isClosed,
+        startDate = this.startDate?.convertToDate()
     )
 }
 

@@ -2,6 +2,8 @@ package com.observe.eonet.ui.category
 
 import com.observe.eonet.app.EONETApplication
 import com.observe.eonet.data.model.EOCategory
+import com.observe.eonet.data.model.EOEvent
+import com.observe.eonet.data.model.filterEvents
 import com.observe.eonet.data.model.mergeEvents
 import com.observe.eonet.ui.category.CategoriesAction.LoadCategoriesAction
 import com.observe.eonet.ui.category.CategoriesResult.LoadCategoriesResult
@@ -21,13 +23,13 @@ class CategoriesProcessorHolder {
         return categories
             .map { it.id }.distinct() // find different ids
             .toObservable()
-            .flatMap({
-                EONETApplication.categoryRepository.getCategory(it)
-                    .subscribeOn(EONETApplication.schedulerProvider.io()) // Parallel execution
-                    .onErrorResumeNext(Observable.empty<EOCategory>())
-            }, 4)
-            .scan(categories) { existingCategories, updatedCategory ->
-                existingCategories.map { it.mergeEvents(updatedCategory) }
+            .flatMap {
+                EONETApplication.eventRepository.getEvents()
+                    .subscribeOn(EONETApplication.schedulerProvider.io())
+                    .onErrorResumeNext(Observable.empty<List<EOEvent>>())
+            }
+            .scan(categories) { existingCategories, events ->
+                existingCategories.map { it.mergeEvents(events.filterEvents(it)) }
             }
             .compose(categoriesToUpdateTransformer)
     }

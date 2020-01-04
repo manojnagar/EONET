@@ -1,12 +1,16 @@
 package com.observe.eonet.data.model
 
+import java.util.*
+
 data class EOEvent(
     val id: String,
     val title: String,
     val description: String,
     val categories: List<EOCategory>,
     val sources: List<EOSource>,
-    val geometries: List<EOBaseGeometry>
+    val geometries: List<EOBaseGeometry>,
+    val isClosed: Boolean?,
+    val startDate: Date?
 )
 
 data class EOSource(

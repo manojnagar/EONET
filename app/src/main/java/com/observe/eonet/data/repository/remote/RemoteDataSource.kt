@@ -40,7 +40,12 @@ class RemoteDataSource : DataSource {
         val status = if (closed) "closed" else "open"
         return eonetApi
             .fetchCategory(categoryId, forLastDays, status)
-            .map { it.copy(id = categoryId) }
+            .map {
+                val events = it.events?.map { event ->
+                    event.updateCloseStatusAndDate(closed)
+                }?.toMutableList()
+                it.copy(id = categoryId, events = events)
+            }
     }
 
     override fun fetchEvents(category: EOCategory): Observable<List<EOEvent>> {
@@ -66,13 +71,21 @@ class RemoteDataSource : DataSource {
 
     override fun fetchEvent(eventId: String): Observable<EOEvent> {
         return eonetApi.fetchEvent(eventId)
+            .map { it.updateCloseStatusAndDate(false) }
     }
 
     private fun fetchEvents(forLastDays: Int, closed: Boolean): Observable<List<EOEvent>> {
         val status = if (closed) "closed" else "open"
         return eonetApi
             .fetchEvents(forLastDays = forLastDays, status = status)
-            .map { response -> response.events }
+            .map { response ->
+                response.events.map { it.updateCloseStatusAndDate(closed) }
+            }
+    }
+
+    private fun EOEvent.updateCloseStatusAndDate(isClosed: Boolean): EOEvent {
+        val startDate = null
+        return this.copy(isClosed = isClosed, startDate = startDate)
     }
 
     companion object {
