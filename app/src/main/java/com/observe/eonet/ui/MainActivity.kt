@@ -28,12 +28,6 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        super.onCreateOptionsMenu(menu)
-        menuInflater.inflate(R.menu.activity_main, menu)
-        return true
-    }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {

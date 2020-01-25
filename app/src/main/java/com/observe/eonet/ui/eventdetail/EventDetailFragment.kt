@@ -64,13 +64,6 @@ class EventDetailFragment : Fragment(),
         AnalyticsManager.reportScreenViewEvent("event")
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        activity?.invalidateOptionsMenu()
-        menu.findItem(R.id.sort_by).isVisible = false
-        menu.findItem(R.id.filter_by).isVisible = false
-        return super.onPrepareOptionsMenu(menu)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
