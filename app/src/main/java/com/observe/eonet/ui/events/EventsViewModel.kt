@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.observe.eonet.data.model.EOEvent
 import com.observe.eonet.mvibase.MviViewModel
-import com.observe.eonet.ui.events.EventsAction.LoadEventsAction
+import com.observe.eonet.ui.events.EventsAction.*
 import com.observe.eonet.ui.events.EventsIntent.LoadEventsIntent
 import com.observe.eonet.ui.events.EventsResult.LoadEventsResult
 import com.observe.eonet.util.notOfType
@@ -64,7 +64,7 @@ class EventsViewModel : ViewModel(), MviViewModel<EventsIntent, EventsViewState>
             is LoadEventsIntent -> LoadEventsAction(intent.categoryId)
             is EventsIntent.PullToRefreshIntent -> LoadEventsAction(null)
             is EventsIntent.RetryLoadEventIntent -> LoadEventsAction(null)
-            //TODO: Convert each new intent into action here
+            is EventsIntent.UserQueryChangeIntent -> FilterEventsAction(intent.newText)
         }
     }
 

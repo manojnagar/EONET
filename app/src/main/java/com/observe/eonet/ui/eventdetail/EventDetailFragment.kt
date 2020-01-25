@@ -3,10 +3,7 @@ package com.observe.eonet.ui.eventdetail
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -64,11 +61,9 @@ class EventDetailFragment : Fragment(),
         AnalyticsManager.reportScreenViewEvent("event")
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        activity?.invalidateOptionsMenu()
-        menu.findItem(R.id.sort_by).isVisible = false
-        menu.findItem(R.id.filter_by).isVisible = false
-        return super.onPrepareOptionsMenu(menu)
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        menu.clear()
     }
 
     override fun onCreateView(

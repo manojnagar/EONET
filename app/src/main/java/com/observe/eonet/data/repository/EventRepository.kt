@@ -20,7 +20,7 @@ class EventRepository(
         return getEventFromApi(eventId)
     }
 
-    fun getEvents(): Observable<List<EOEvent>> {
+    fun getEvents(fetchFromRemote: Boolean = true): Observable<List<EOEvent>> {
         Log.d(TAG, "Request received for getEvents")
         var dbReturnAnItem = false
         val dbObservable = getEventsFromDb()
@@ -33,7 +33,8 @@ class EventRepository(
                     Observable.error(error)
                 }
             })
-        return dbObservable.concatWith(apiObservable)
+        return dbObservable
+            .concatWith(if (fetchFromRemote) apiObservable else Observable.empty())
             .filter { it.isNotEmpty() }
     }
 

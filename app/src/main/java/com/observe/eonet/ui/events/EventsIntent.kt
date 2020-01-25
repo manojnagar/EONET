@@ -10,6 +10,8 @@ sealed class EventsIntent : MviIntent {
 
     object RetryLoadEventIntent : EventsIntent()
 
+    data class UserQueryChangeIntent(val newText: String?) : EventsIntent()
+
     //TODO: All other actions for this screen from user end
     // Intent -> User/System/AnyComponent perform some operation on UI to perform a task
 }

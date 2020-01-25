@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.observe.eonet.R
 import com.observe.eonet.app.inflate
 import com.observe.eonet.data.model.EOEvent
+import com.observe.eonet.util.convertToString
 import kotlinx.android.synthetic.main.list_item_event.view.*
 
 class EventsAdapter(
@@ -39,6 +40,9 @@ class EventsAdapter(
             //Update view
             var category = event.categories.joinToString(" #") { it.title }
             category = "#$category"
+            event.startDate?.convertToString()?.let {
+                category = category.plus(", Date: $it")
+            }
             itemView.category.text = category
             itemView.title.text = event.title
 

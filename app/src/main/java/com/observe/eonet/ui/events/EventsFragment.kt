@@ -3,11 +3,9 @@ package com.observe.eonet.ui.events
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -41,6 +39,8 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
         PublishSubject.create<EventsIntent.PullToRefreshIntent>()
     private var retryLoadIntentPublisher =
         PublishSubject.create<EventsIntent.RetryLoadEventIntent>()
+    private var userQueryChangeIntentPublisher =
+        PublishSubject.create<EventsIntent.UserQueryChangeIntent>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,6 +51,23 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
             ViewModelProviders.of(this).get(EventsViewModel::class.java)
         adapter = EventsAdapter(mutableListOf(), this)
         return inflater.inflate(R.layout.fragment_events, container, false)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        val searchMenu = menu.findItem(R.id.search)
+        val searchView = searchMenu.actionView as SearchView
+        searchView.queryHint = "Enter an event"
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                userQueryChangeIntentPublisher.onNext(EventsIntent.UserQueryChangeIntent(query))
+                return  true
+            }
+            override fun onQueryTextChange(newText: String?): Boolean {
+                userQueryChangeIntentPublisher.onNext(EventsIntent.UserQueryChangeIntent(newText))
+                return  true
+            }
+        })
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -122,11 +139,16 @@ class EventsFragment : Fragment(), MviView<EventsIntent, EventsViewState>,
         return retryLoadIntentPublisher
     }
 
+    private fun userQueryChangeIntent(): Observable<EventsIntent.UserQueryChangeIntent> {
+        return userQueryChangeIntentPublisher
+    }
+
     override fun intents(): Observable<EventsIntent> {
         return Observable.merge(
             loadIntent(),
             pullToRefreshIntent(),
-            retryLoadEventIntent()
+            retryLoadEventIntent(),
+            userQueryChangeIntent()
         )
     }
 
