@@ -72,4 +72,12 @@ sealed class EOBaseGeometry {
         }
 
     }
+
+    val compareByDates = Comparator<EOEvent> { x, y ->
+        if (x.startDate == null || y.startDate == null) {
+            0
+        } else {
+            x.startDate.compareTo(y.startDate)
+        }
+    }
 }
