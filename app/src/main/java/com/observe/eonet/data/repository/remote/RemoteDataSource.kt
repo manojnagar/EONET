@@ -89,6 +89,6 @@ class RemoteDataSource : DataSource {
     }
 
     companion object {
-        private const val FOR_LAST_DAYS = 30
+        private const val FOR_LAST_DAYS = 360
     }
 }
